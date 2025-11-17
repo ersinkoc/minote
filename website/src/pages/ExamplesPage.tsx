@@ -1,280 +1,274 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { examples } from '../lib/examples'
-import { toMinote } from 'minote'
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ExampleCard } from '../components/ExampleCard';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import { CodeBlock } from '../components/CodeBlock';
+import { Database, Cloud, MessageSquare, FileJson, Filter } from 'lucide-react';
+
+interface Example {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  savings: string;
+  json: string;
+  minote: string;
+}
+
+const examples: Example[] = [
+  {
+    id: 'user-profiles',
+    title: 'User Profiles',
+    description: 'Common user data structure with multiple fields',
+    category: 'Database',
+    savings: '47%',
+    json: JSON.stringify({
+      users: [
+        { id: 1, name: 'Alice Johnson', email: 'alice@example.com', role: 'admin', active: true },
+        { id: 2, name: 'Bob Smith', email: 'bob@example.com', role: 'user', active: true },
+        { id: 3, name: 'Charlie Brown', email: 'charlie@example.com', role: 'user', active: false },
+      ],
+    }, null, 2),
+    minote: `users:
+#id,name,email,role,active
+1,Alice Johnson,alice@example.com,admin,t
+2,Bob Smith,bob@example.com,user,t
+3,Charlie Brown,charlie@example.com,user,f`,
+  },
+  {
+    id: 'product-catalog',
+    title: 'Product Catalog',
+    description: 'E-commerce product listings with pricing and inventory',
+    category: 'E-commerce',
+    savings: '52%',
+    json: JSON.stringify({
+      products: [
+        { sku: 'LAP-001', name: 'Gaming Laptop', price: 1299.99, stock: 15, featured: true },
+        { sku: 'MOU-042', name: 'Wireless Mouse', price: 49.99, stock: 120, featured: false },
+        { sku: 'KEY-017', name: 'Mechanical Keyboard', price: 159.99, stock: 45, featured: true },
+      ],
+    }, null, 2),
+    minote: `products:
+#sku,name,price,stock,featured
+LAP-001,Gaming Laptop,1299.99,15,t
+MOU-042,Wireless Mouse,49.99,120,f
+KEY-017,Mechanical Keyboard,159.99,45,t`,
+  },
+  {
+    id: 'chat-messages',
+    title: 'Chat Messages',
+    description: 'Messaging app conversation history',
+    category: 'Communication',
+    savings: '43%',
+    json: JSON.stringify({
+      messages: [
+        { id: 'm1', sender: 'alice', text: 'Hey, how are you?', timestamp: 1704067200 },
+        { id: 'm2', sender: 'bob', text: 'Great! Working on the project.', timestamp: 1704067260 },
+        { id: 'm3', sender: 'alice', text: 'Awesome, need any help?', timestamp: 1704067320 },
+      ],
+    }, null, 2),
+    minote: `messages:
+#id,sender,text,timestamp
+m1,alice,Hey\\, how are you?,1704067200
+m2,bob,Great! Working on the project.,1704067260
+m3,alice,Awesome\\, need any help?,1704067320`,
+  },
+  {
+    id: 'api-logs',
+    title: 'API Request Logs',
+    description: 'Server logs with request details and response codes',
+    category: 'Logs',
+    savings: '55%',
+    json: JSON.stringify({
+      logs: [
+        { timestamp: '2024-01-15T10:30:00Z', method: 'GET', path: '/api/users', status: 200, duration: 45 },
+        { timestamp: '2024-01-15T10:31:12Z', method: 'POST', path: '/api/users', status: 201, duration: 123 },
+        { timestamp: '2024-01-15T10:32:45Z', method: 'PUT', path: '/api/users/1', status: 200, duration: 67 },
+      ],
+    }, null, 2),
+    minote: `logs:
+#timestamp,method,path,status,duration
+2024-01-15T10:30:00Z,GET,/api/users,200,45
+2024-01-15T10:31:12Z,POST,/api/users,201,123
+2024-01-15T10:32:45Z,PUT,/api/users/1,200,67`,
+  },
+  {
+    id: 'iot-sensors',
+    title: 'IoT Sensor Readings',
+    description: 'Time-series data from IoT devices',
+    category: 'IoT',
+    savings: '49%',
+    json: JSON.stringify({
+      readings: [
+        { deviceId: 'TH-001', temperature: 22.5, humidity: 45, battery: 87, online: true },
+        { deviceId: 'TH-002', temperature: 23.1, humidity: 52, battery: 92, online: true },
+        { deviceId: 'TH-003', temperature: 21.8, humidity: 48, battery: 34, online: false },
+      ],
+    }, null, 2),
+    minote: `readings:
+#deviceId,temperature,humidity,battery,online
+TH-001,22.5,45,87,t
+TH-002,23.1,52,92,t
+TH-003,21.8,48,34,f`,
+  },
+  {
+    id: 'task-management',
+    title: 'Task Management',
+    description: 'Project tasks with assignments and deadlines',
+    category: 'Productivity',
+    savings: '46%',
+    json: JSON.stringify({
+      tasks: [
+        { id: 'T-101', title: 'Design homepage', assignee: 'Alice', priority: 'high', completed: false },
+        { id: 'T-102', title: 'Write API docs', assignee: 'Bob', priority: 'medium', completed: true },
+        { id: 'T-103', title: 'Fix login bug', assignee: 'Charlie', priority: 'urgent', completed: false },
+      ],
+    }, null, 2),
+    minote: `tasks:
+#id,title,assignee,priority,completed
+T-101,Design homepage,Alice,high,f
+T-102,Write API docs,Bob,medium,t
+T-103,Fix login bug,Charlie,urgent,f`,
+  },
+  {
+    id: 'financial-transactions',
+    title: 'Financial Transactions',
+    description: 'Banking transaction records',
+    category: 'Finance',
+    savings: '50%',
+    json: JSON.stringify({
+      transactions: [
+        { txId: 'TX-9001', date: '2024-01-15', amount: 1250.00, type: 'credit', category: 'salary' },
+        { txId: 'TX-9002', date: '2024-01-16', amount: 45.99, type: 'debit', category: 'groceries' },
+        { txId: 'TX-9003', date: '2024-01-17', amount: 89.50, type: 'debit', category: 'utilities' },
+      ],
+    }, null, 2),
+    minote: `transactions:
+#txId,date,amount,type,category
+TX-9001,2024-01-15,1250.00,credit,salary
+TX-9002,2024-01-16,45.99,debit,groceries
+TX-9003,2024-01-17,89.50,debit,utilities`,
+  },
+  {
+    id: 'event-attendees',
+    title: 'Event Attendees',
+    description: 'Conference registration data',
+    category: 'Events',
+    savings: '44%',
+    json: JSON.stringify({
+      attendees: [
+        { ticketId: 'E2024-001', name: 'Alice Johnson', company: 'TechCorp', vip: true, checkedIn: true },
+        { ticketId: 'E2024-002', name: 'Bob Smith', company: 'StartupXYZ', vip: false, checkedIn: true },
+        { ticketId: 'E2024-003', name: 'Charlie Brown', company: 'BigCo', vip: true, checkedIn: false },
+      ],
+    }, null, 2),
+    minote: `attendees:
+#ticketId,name,company,vip,checkedIn
+E2024-001,Alice Johnson,TechCorp,t,t
+E2024-002,Bob Smith,StartupXYZ,f,t
+E2024-003,Charlie Brown,BigCo,t,f`,
+  },
+];
 
 export default function ExamplesPage() {
-  const navigate = useNavigate()
-  const [expandedExample, setExpandedExample] = useState<string | null>(null)
+  const navigate = useNavigate();
+  const [selectedExample, setSelectedExample] = useState<Example | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
-  const handleExampleClick = (exampleId: string) => {
-    // Navigate to playground with this example pre-loaded
-    navigate(`/playground?example=${exampleId}`)
-  }
+  const categories = ['All', ...Array.from(new Set(examples.map((e) => e.category)))];
 
-  const toggleExpanded = (exampleId: string) => {
-    setExpandedExample(expandedExample === exampleId ? null : exampleId)
-  }
+  const handleTryExample = (example: Example) => {
+    // In a real app, you'd pass this data to the playground via state or URL params
+    navigate('/playground', { state: { example: example.json } });
+  };
+
+  const handleViewCode = (example: Example) => {
+    setSelectedExample(example);
+    setDialogOpen(true);
+  };
 
   return (
-    <div className="page">
-      <div className="container">
-        {/* Page Header */}
-        <div className="page-header">
-          <h1 className="page-title">Example Gallery</h1>
-          <p className="page-subtitle">
-            Explore real-world examples demonstrating MINOTE's token-saving capabilities.
-            Click any example to try it in the playground.
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-2">
+            <span className="gradient-text">Examples</span>
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            Real-world use cases showing MINOTE in action
           </p>
         </div>
 
-        {/* Examples Grid */}
-        <div className="examples-container">
-          {examples.map((example, index) => {
-            const minoteVersion = toMinote(example.data)
-            const jsonVersion = JSON.stringify(example.data, null, 2)
-            const isExpanded = expandedExample === example.id
-
-            return (
-              <div
-                key={example.id}
-                className="example-card fade-in"
-                style={{ animationDelay: `${index * 0.1}s` }}
+        {/* Category Tabs */}
+        <Tabs defaultValue="All" className="space-y-6">
+          <TabsList className="flex flex-wrap h-auto gap-2 bg-transparent">
+            {categories.map((category) => (
+              <TabsTrigger
+                key={category}
+                value={category}
+                className="data-[state=active]:bg-purple-500/10 data-[state=active]:text-purple-400"
               >
-                {/* Example Header */}
-                <div className="example-header">
-                  <div>
-                    <h3 className="example-title">{example.title}</h3>
-                    <p className="example-description">{example.description}</p>
-                  </div>
-                  <div className="example-badge">{example.reduction}% Savings</div>
-                </div>
+                {category === 'All' && <Filter className="w-4 h-4 mr-2" />}
+                {category === 'Database' && <Database className="w-4 h-4 mr-2" />}
+                {category === 'Communication' && <MessageSquare className="w-4 h-4 mr-2" />}
+                {category === 'Logs' && <FileJson className="w-4 h-4 mr-2" />}
+                {category === 'IoT' && <Cloud className="w-4 h-4 mr-2" />}
+                {category}
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-                {/* Stats */}
-                <div className="example-stats">
-                  <div className="example-stat">
-                    <div className="example-stat-label">Category</div>
-                    <div className="example-stat-value">{example.category}</div>
-                  </div>
-                  <div className="example-stat">
-                    <div className="example-stat-label">JSON Tokens</div>
-                    <div className="example-stat-value">{example.jsonTokens}</div>
-                  </div>
-                  <div className="example-stat">
-                    <div className="example-stat-label">MINOTE Tokens</div>
-                    <div className="example-stat-value">{example.minoteTokens}</div>
-                  </div>
-                  <div className="example-stat">
-                    <div className="example-stat-label">Reduction</div>
-                    <div className="example-stat-value gradient-text">{example.reduction}%</div>
-                  </div>
-                </div>
-
-                {/* Preview Toggle */}
-                <button
-                  className="preview-toggle-btn"
-                  onClick={() => toggleExpanded(example.id)}
-                >
-                  {isExpanded ? 'Hide Preview' : 'Show Preview'}
-                </button>
-
-                {/* Preview Content */}
-                {isExpanded && (
-                  <div className="example-preview">
-                    <div className="preview-pane">
-                      <div className="preview-header">
-                        <span className="preview-label">JSON ({example.jsonTokens} tokens)</span>
-                      </div>
-                      <pre className="preview-code">
-                        <code>{jsonVersion}</code>
-                      </pre>
-                    </div>
-
-                    <div className="preview-divider">→</div>
-
-                    <div className="preview-pane">
-                      <div className="preview-header">
-                        <span className="preview-label">MINOTE ({example.minoteTokens} tokens)</span>
-                      </div>
-                      <pre className="preview-code">
-                        <code>{minoteVersion}</code>
-                      </pre>
-                    </div>
-                  </div>
-                )}
-
-                {/* Action Button */}
-                <button
-                  className="btn btn-primary"
-                  style={{ width: '100%', marginTop: 'var(--space-md)' }}
-                  onClick={() => handleExampleClick(example.id)}
-                >
-                  Try in Playground →
-                </button>
+          {categories.map((category) => (
+            <TabsContent key={category} value={category}>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {examples
+                  .filter((example) => category === 'All' || example.category === category)
+                  .map((example) => (
+                    <ExampleCard
+                      key={example.id}
+                      title={example.title}
+                      description={example.description}
+                      category={example.category}
+                      savings={example.savings}
+                      onTry={() => handleTryExample(example)}
+                      onViewCode={() => handleViewCode(example)}
+                    />
+                  ))}
               </div>
-            )
-          })}
-        </div>
+            </TabsContent>
+          ))}
+        </Tabs>
 
-        {/* Summary Section */}
-        <section className="summary-section">
-          <h2 style={{ textAlign: 'center', marginBottom: 'var(--space-lg)' }}>
-            Why These Examples Matter
-          </h2>
-
-          <div className="features-grid">
-            <div className="feature-card">
-              <h3 className="feature-title">Real-World Data</h3>
-              <p className="feature-description">
-                These examples represent actual use cases you'll encounter when working with LLMs:
-                API responses, database results, ML data, and more.
-              </p>
-            </div>
-
-            <div className="feature-card">
-              <h3 className="feature-title">Proven Savings</h3>
-              <p className="feature-description">
-                Average 47% token reduction across all examples, with database and ML examples
-                achieving up to 61% savings through table optimization.
-              </p>
-            </div>
-
-            <div className="feature-card">
-              <h3 className="feature-title">Perfect Roundtrips</h3>
-              <p className="feature-description">
-                Every example demonstrates lossless conversion. All data types, values, and
-                structure are preserved perfectly in both directions.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* CTA */}
-        <div style={{ textAlign: 'center', marginTop: 'var(--space-3xl)', padding: 'var(--space-2xl)', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-xl)' }}>
-          <h3 style={{ marginBottom: 'var(--space-md)' }}>Ready to Try MINOTE?</h3>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--space-lg)', maxWidth: '600px', marginLeft: 'auto', marginRight: 'auto' }}>
-            Jump into the interactive playground to experiment with these examples and your own data.
-          </p>
-          <button
-            className="btn btn-primary"
-            style={{ fontSize: '1.125rem', padding: 'var(--space-lg) var(--space-2xl)' }}
-            onClick={() => navigate('/playground')}
-          >
-            Open Playground
-          </button>
-        </div>
+        {/* Code View Dialog */}
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            {selectedExample && (
+              <>
+                <DialogHeader>
+                  <DialogTitle>{selectedExample.title}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-6 mt-4">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">JSON Format</h3>
+                    <CodeBlock code={selectedExample.json} language="json" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3">MINOTE Format</h3>
+                    <CodeBlock code={selectedExample.minote} language="text" />
+                  </div>
+                  <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
+                    <div className="text-sm text-green-400 font-semibold">
+                      Token Savings: {selectedExample.savings}
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
-
-      <style>{`
-        .examples-container {
-          display: flex;
-          flex-direction: column;
-          gap: var(--space-xl);
-        }
-
-        .preview-toggle-btn {
-          width: 100%;
-          padding: var(--space-sm) var(--space-md);
-          background: var(--bg-secondary);
-          border: 1px solid var(--border-color);
-          border-radius: var(--radius-md);
-          color: var(--text-primary);
-          font-size: 0.875rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all var(--transition-fast);
-          margin-top: var(--space-md);
-        }
-
-        .preview-toggle-btn:hover {
-          background: var(--bg-tertiary);
-          border-color: var(--accent-blue);
-        }
-
-        .example-preview {
-          display: grid;
-          grid-template-columns: 1fr auto 1fr;
-          gap: var(--space-md);
-          margin-top: var(--space-lg);
-          padding: var(--space-lg);
-          background: var(--bg-secondary);
-          border-radius: var(--radius-md);
-          animation: fadeIn var(--transition-base) ease-out;
-        }
-
-        .preview-pane {
-          display: flex;
-          flex-direction: column;
-          min-width: 0;
-        }
-
-        .preview-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: var(--space-sm);
-          padding-bottom: var(--space-sm);
-          border-bottom: 1px solid var(--border-color);
-        }
-
-        .preview-label {
-          font-size: 0.75rem;
-          font-weight: 600;
-          color: var(--text-tertiary);
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-
-        .preview-code {
-          flex: 1;
-          margin: 0;
-          padding: var(--space-md);
-          background: var(--code-bg);
-          border-radius: var(--radius-sm);
-          overflow-x: auto;
-          font-size: 0.75rem;
-          line-height: 1.6;
-        }
-
-        .preview-code code {
-          background: none;
-          border: none;
-          padding: 0;
-          color: var(--code-text);
-        }
-
-        .preview-divider {
-          display: flex;
-          align-items: center;
-          color: var(--accent-blue);
-          font-size: 1.5rem;
-          font-weight: bold;
-        }
-
-        .summary-section {
-          margin-top: var(--space-3xl);
-          padding: var(--space-3xl) 0;
-          border-top: 2px solid var(--border-color);
-        }
-
-        @media (max-width: 1024px) {
-          .example-preview {
-            grid-template-columns: 1fr;
-            grid-template-rows: auto auto auto;
-          }
-
-          .preview-divider {
-            justify-content: center;
-            transform: rotate(90deg);
-          }
-        }
-
-        @media (max-width: 768px) {
-          .preview-code {
-            font-size: 0.7rem;
-          }
-        }
-      `}</style>
     </div>
-  )
+  );
 }

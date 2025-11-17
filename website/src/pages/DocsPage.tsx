@@ -1,430 +1,518 @@
-import { useState } from 'react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { CodeBlock } from '../components/CodeBlock';
+import { Badge } from '../components/ui/badge';
+import { Separator } from '../components/ui/separator';
+import { BookOpen, Code2, Lightbulb, Rocket } from 'lucide-react';
 
 export default function DocsPage() {
-  const [copiedSection, setCopiedSection] = useState<string | null>(null)
-
-  const copyCode = (code: string, section: string) => {
-    navigator.clipboard.writeText(code)
-    setCopiedSection(section)
-    setTimeout(() => setCopiedSection(null), 2000)
-  }
-
   return (
-    <div className="page">
-      <div className="container">
-        {/* Page Header */}
-        <div className="page-header">
-          <h1 className="page-title">API Documentation</h1>
-          <p className="page-subtitle">
-            Complete reference for the MINOTE API with examples and type annotations.
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-2">
+            <span className="gradient-text">Documentation</span>
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            Everything you need to know about MINOTE
           </p>
         </div>
 
-        {/* Installation */}
-        <section className="docs-section">
-          <h2>Installation</h2>
-          <p>Install MINOTE using your preferred package manager:</p>
+        <Tabs defaultValue="getting-started" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="getting-started">
+              <Rocket className="w-4 h-4 mr-2" />
+              Getting Started
+            </TabsTrigger>
+            <TabsTrigger value="api">
+              <Code2 className="w-4 h-4 mr-2" />
+              API Reference
+            </TabsTrigger>
+            <TabsTrigger value="format">
+              <BookOpen className="w-4 h-4 mr-2" />
+              Format Spec
+            </TabsTrigger>
+            <TabsTrigger value="examples">
+              <Lightbulb className="w-4 h-4 mr-2" />
+              Examples
+            </TabsTrigger>
+          </TabsList>
 
-          <div className="code-example">
-            <div className="code-example-header">
-              <h3 className="code-example-title">npm</h3>
-              <button
-                className={`copy-button ${copiedSection === 'npm' ? 'copied' : ''}`}
-                onClick={() => copyCode('npm install minote', 'npm')}
-              >
-                {copiedSection === 'npm' ? '✓ Copied' : 'Copy'}
-              </button>
-            </div>
-            <pre><code>npm install minote</code></pre>
-          </div>
+          {/* Getting Started Tab */}
+          <TabsContent value="getting-started" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Installation</CardTitle>
+                <CardDescription>Add MINOTE to your project</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="font-semibold mb-2">npm</h4>
+                  <CodeBlock code="npm install minote" showLineNumbers={false} />
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">yarn</h4>
+                  <CodeBlock code="yarn add minote" showLineNumbers={false} />
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">pnpm</h4>
+                  <CodeBlock code="pnpm add minote" showLineNumbers={false} />
+                </div>
+              </CardContent>
+            </Card>
 
-          <div className="code-example">
-            <div className="code-example-header">
-              <h3 className="code-example-title">yarn</h3>
-              <button
-                className={`copy-button ${copiedSection === 'yarn' ? 'copied' : ''}`}
-                onClick={() => copyCode('yarn add minote', 'yarn')}
-              >
-                {copiedSection === 'yarn' ? '✓ Copied' : 'Copy'}
-              </button>
-            </div>
-            <pre><code>yarn add minote</code></pre>
-          </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Start</CardTitle>
+                <CardDescription>Convert JSON to MINOTE and back</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <CodeBlock
+                  language="typescript"
+                  code={`import { jsonToMinote, minoteToJson } from 'minote';
 
-          <div className="code-example">
-            <div className="code-example-header">
-              <h3 className="code-example-title">pnpm</h3>
-              <button
-                className={`copy-button ${copiedSection === 'pnpm' ? 'copied' : ''}`}
-                onClick={() => copyCode('pnpm add minote', 'pnpm')}
-              >
-                {copiedSection === 'pnpm' ? '✓ Copied' : 'Copy'}
-              </button>
-            </div>
-            <pre><code>pnpm add minote</code></pre>
-          </div>
-        </section>
-
-        {/* Core API */}
-        <section className="docs-section">
-          <h2>Core API</h2>
-
-          {/* toMinote */}
-          <div className="api-method">
-            <h3>toMinote()</h3>
-            <div className="api-signature">
-              <code>{`toMinote(data: any, options?: ConversionOptions): string`}</code>
-            </div>
-            <p className="api-description">
-              Converts a JavaScript object or value to MINOTE format string.
-              Automatically detects and optimizes uniform arrays into compact table format.
-            </p>
-
-            <div className="api-params">
-              <h4>Parameters</h4>
-              <div className="param-item">
-                <span className="param-name">data</span>
-                <span className="param-type">any</span>
-                <p style={{ margin: 'var(--space-xs) 0 0', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                  The JavaScript value to convert to MINOTE format.
-                </p>
-              </div>
-              <div className="param-item">
-                <span className="param-name">options</span>
-                <span className="param-type">ConversionOptions (optional)</span>
-                <p style={{ margin: 'var(--space-xs) 0 0', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                  Configuration options for the conversion.
-                </p>
-              </div>
-            </div>
-
-            <div className="code-example" style={{ marginTop: 'var(--space-lg)' }}>
-              <div className="code-example-header">
-                <h3 className="code-example-title">Example</h3>
-                <button
-                  className={`copy-button ${copiedSection === 'toMinote' ? 'copied' : ''}`}
-                  onClick={() => copyCode(`import { toMinote } from 'minote'
-
-const user = {
-  name: 'Alice',
-  age: 30,
-  active: true
-}
-
-const minote = toMinote(user)
-console.log(minote)
-// Output:
-// name: Alice
-// age: 30
-// active: true`, 'toMinote')}
-                >
-                  {copiedSection === 'toMinote' ? '✓ Copied' : 'Copy'}
-                </button>
-              </div>
-              <pre><code>{`import { toMinote } from 'minote'
-
-const user = {
-  name: 'Alice',
-  age: 30,
-  active: true
-}
-
-const minote = toMinote(user)
-console.log(minote)
-// Output:
-// name: Alice
-// age: 30
-// active: true`}</code></pre>
-            </div>
-          </div>
-
-          {/* toJson */}
-          <div className="api-method">
-            <h3>toJson()</h3>
-            <div className="api-signature">
-              <code>{`toJson(minote: string): any`}</code>
-            </div>
-            <p className="api-description">
-              Converts a MINOTE format string back to a JavaScript object.
-              Perfectly preserves all data types and structure from the original conversion.
-            </p>
-
-            <div className="api-params">
-              <h4>Parameters</h4>
-              <div className="param-item">
-                <span className="param-name">minote</span>
-                <span className="param-type">string</span>
-                <p style={{ margin: 'var(--space-xs) 0 0', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                  The MINOTE format string to parse and convert back to JavaScript.
-                </p>
-              </div>
-            </div>
-
-            <div className="code-example" style={{ marginTop: 'var(--space-lg)' }}>
-              <div className="code-example-header">
-                <h3 className="code-example-title">Example</h3>
-                <button
-                  className={`copy-button ${copiedSection === 'toJson' ? 'copied' : ''}`}
-                  onClick={() => copyCode(`import { toJson } from 'minote'
-
-const minote = \`
-name: Alice
-age: 30
-active: true
-\`
-
-const data = toJson(minote)
-console.log(data)
-// Output: { name: 'Alice', age: 30, active: true }`, 'toJson')}
-                >
-                  {copiedSection === 'toJson' ? '✓ Copied' : 'Copy'}
-                </button>
-              </div>
-              <pre><code>{`import { toJson } from 'minote'
-
-const minote = \`
-name: Alice
-age: 30
-active: true
-\`
-
-const data = toJson(minote)
-console.log(data)
-// Output: { name: 'Alice', age: 30, active: true }`}</code></pre>
-            </div>
-          </div>
-
-          {/* parse */}
-          <div className="api-method">
-            <h3>parse()</h3>
-            <div className="api-signature">
-              <code>{`parse(input: string): ASTNode`}</code>
-            </div>
-            <p className="api-description">
-              Parses a MINOTE format string into an Abstract Syntax Tree (AST).
-              Useful for advanced use cases where you need to manipulate the parsed structure
-              before converting to JavaScript.
-            </p>
-
-            <div className="api-params">
-              <h4>Parameters</h4>
-              <div className="param-item">
-                <span className="param-name">input</span>
-                <span className="param-type">string</span>
-                <p style={{ margin: 'var(--space-xs) 0 0', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                  The MINOTE format string to parse into an AST.
-                </p>
-              </div>
-            </div>
-
-            <div className="code-example" style={{ marginTop: 'var(--space-lg)' }}>
-              <div className="code-example-header">
-                <h3 className="code-example-title">Example</h3>
-                <button
-                  className={`copy-button ${copiedSection === 'parse' ? 'copied' : ''}`}
-                  onClick={() => copyCode(`import { parse } from 'minote'
-
-const minote = 'name: Alice\\nage: 30'
-const ast = parse(minote)
-console.log(JSON.stringify(ast, null, 2))`, 'parse')}
-                >
-                  {copiedSection === 'parse' ? '✓ Copied' : 'Copy'}
-                </button>
-              </div>
-              <pre><code>{`import { parse } from 'minote'
-
-const minote = 'name: Alice\\nage: 30'
-const ast = parse(minote)
-console.log(JSON.stringify(ast, null, 2))`}</code></pre>
-            </div>
-          </div>
-
-          {/* stringify */}
-          <div className="api-method">
-            <h3>stringify()</h3>
-            <div className="api-signature">
-              <code>{`stringify(ast: ASTNode, options?: ConversionOptions): string`}</code>
-            </div>
-            <p className="api-description">
-              Converts an Abstract Syntax Tree back to a MINOTE format string.
-              Useful when you've manipulated the AST and want to serialize it back to MINOTE.
-            </p>
-
-            <div className="api-params">
-              <h4>Parameters</h4>
-              <div className="param-item">
-                <span className="param-name">ast</span>
-                <span className="param-type">ASTNode</span>
-                <p style={{ margin: 'var(--space-xs) 0 0', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                  The Abstract Syntax Tree to convert to MINOTE format.
-                </p>
-              </div>
-              <div className="param-item">
-                <span className="param-name">options</span>
-                <span className="param-type">ConversionOptions (optional)</span>
-                <p style={{ margin: 'var(--space-xs) 0 0', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                  Configuration options for stringification.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Table Format */}
-        <section className="docs-section">
-          <h2>Table Format</h2>
-          <p>
-            MINOTE automatically converts uniform arrays (arrays of objects with the same keys)
-            into a compact table format, achieving up to 60% token reduction.
-          </p>
-
-          <h3>Automatic Table Detection</h3>
-          <p>
-            When an array contains 3 or more objects with identical keys, MINOTE automatically
-            converts it to table format:
-          </p>
-
-          <div className="code-example">
-            <div className="code-example-header">
-              <h3 className="code-example-title">JSON Input</h3>
-            </div>
-            <pre><code>{`{
-  "users": [
-    { "id": 1, "name": "Alice", "role": "Admin" },
-    { "id": 2, "name": "Bob", "role": "User" },
-    { "id": 3, "name": "Charlie", "role": "User" }
+// Your data
+const data = {
+  users: [
+    { id: 1, name: "Alice", email: "alice@example.com" },
+    { id: 2, name: "Bob", email: "bob@example.com" }
   ]
-}`}</code></pre>
-          </div>
+};
 
-          <div className="code-example">
-            <div className="code-example-header">
-              <h3 className="code-example-title">MINOTE Output (Table Format)</h3>
-            </div>
-            <pre><code>{`users
-  | id | name    | role  |
-  | 1  | Alice   | Admin |
-  | 2  | Bob     | User  |
-  | 3  | Charlie | User  |`}</code></pre>
-          </div>
+// Convert to MINOTE (compressed)
+const minote = jsonToMinote(data);
+console.log(minote);
+// Output:
+// users:
+// #id,name,email
+// 1,Alice,alice@example.com
+// 2,Bob,bob@example.com
 
-          <h3>Configuration</h3>
-          <p>You can control table formatting with the <code>ConversionOptions</code>:</p>
+// Convert back to JSON
+const json = minoteToJson(minote);
+console.log(json);
+// Output: { users: [ { id: 1, name: "Alice", ... }, ... ] }`}
+                />
+              </CardContent>
+            </Card>
 
-          <div className="code-example">
-            <div className="code-example-header">
-              <h3 className="code-example-title">Table Options</h3>
-              <button
-                className={`copy-button ${copiedSection === 'tableOptions' ? 'copied' : ''}`}
-                onClick={() => copyCode(`const minote = toMinote(data, {
-  useTables: true,        // Enable table detection (default: true)
-  minTableRows: 3,        // Minimum rows for table format (default: 3)
-  preserveTypes: true     // Preserve type annotations (default: true)
-})`, 'tableOptions')}
-              >
-                {copiedSection === 'tableOptions' ? '✓ Copied' : 'Copy'}
-              </button>
-            </div>
-            <pre><code>{`const minote = toMinote(data, {
-  useTables: true,        // Enable table detection (default: true)
-  minTableRows: 3,        // Minimum rows for table format (default: 3)
-  preserveTypes: true     // Preserve type annotations (default: true)
-})`}</code></pre>
-          </div>
-        </section>
+            <Card>
+              <CardHeader>
+                <CardTitle>TypeScript Support</CardTitle>
+                <CardDescription>Full type definitions included</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CodeBlock
+                  language="typescript"
+                  code={`import { jsonToMinote, minoteToJson, MinoteOptions } from 'minote';
 
-        {/* Type Preservation */}
-        <section className="docs-section">
-          <h2>Type Preservation</h2>
-          <p>
-            MINOTE preserves all JSON data types through type annotations.
-            This ensures perfect roundtrip conversion without data loss.
-          </p>
+// Type-safe options
+const options: MinoteOptions = {
+  arrayThreshold: 3,
+  indent: '  '
+};
 
-          <div className="code-example">
-            <div className="code-example-header">
-              <h3 className="code-example-title">All Supported Types</h3>
-            </div>
-            <pre><code>{`{
-  "string": "Hello",
-  "number": 42,
-  "float": 3.14,
-  "boolean": true,
-  "null": null,
-  "array": [1, 2, 3],
-  "object": { "key": "value" }
-}`}</code></pre>
-          </div>
+// Fully typed conversion
+const minote: string = jsonToMinote(data, options);
+const json: any = minoteToJson(minote);`}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-          <div className="code-example">
-            <div className="code-example-header">
-              <h3 className="code-example-title">MINOTE with Type Annotations</h3>
-            </div>
-            <pre><code>{`string: Hello
-number: 42
-float: 3.14
-boolean: true
-null: null
-array: [1, 2, 3]
-object
-  key: value`}</code></pre>
-          </div>
-        </section>
+          {/* API Reference Tab */}
+          <TabsContent value="api" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>jsonToMinote()</CardTitle>
+                <CardDescription>Convert JSON to MINOTE format</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="font-semibold mb-2">Signature</h4>
+                  <CodeBlock
+                    language="typescript"
+                    code={`function jsonToMinote(
+  data: any,
+  options?: MinoteOptions
+): string`}
+                    showLineNumbers={false}
+                  />
+                </div>
 
-        {/* Best Practices */}
-        <section className="docs-section">
-          <h2>Best Practices</h2>
+                <Separator />
 
-          <h3>When to Use MINOTE</h3>
-          <ul style={{ color: 'var(--text-secondary)', lineHeight: '1.8' }}>
-            <li>Sending structured data to LLM APIs to reduce token costs</li>
-            <li>Processing database query results with uniform schemas</li>
-            <li>Compressing API responses before LLM analysis</li>
-            <li>Training data for machine learning with LLMs</li>
-            <li>Configuration files that need to be LLM-readable</li>
-          </ul>
+                <div>
+                  <h4 className="font-semibold mb-2">Parameters</h4>
+                  <div className="space-y-3 mt-3">
+                    <div className="bg-muted/50 rounded-lg p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <code className="text-sm font-mono">data</code>
+                        <Badge>any</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        The JSON data to convert. Can be any valid JSON structure.
+                      </p>
+                    </div>
 
-          <h3>Maximum Savings</h3>
-          <ul style={{ color: 'var(--text-secondary)', lineHeight: '1.8' }}>
-            <li>Use table format for arrays with 3+ uniform objects (60%+ savings)</li>
-            <li>Minimize deeply nested structures when possible</li>
-            <li>Keep property names concise but meaningful</li>
-            <li>Leverage type inference for common types</li>
-          </ul>
+                    <div className="bg-muted/50 rounded-lg p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <code className="text-sm font-mono">options</code>
+                        <Badge variant="secondary">optional</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Conversion options:
+                      </p>
+                      <ul className="space-y-2 text-sm">
+                        <li className="flex items-start gap-2">
+                          <code className="bg-background px-2 py-0.5 rounded">arrayThreshold</code>
+                          <span className="text-muted-foreground">
+                            Minimum array length to use table format (default: 2)
+                          </span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <code className="bg-background px-2 py-0.5 rounded">indent</code>
+                          <span className="text-muted-foreground">
+                            Indentation string (default: 2 spaces)
+                          </span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
 
-          <h3>Type Safety</h3>
-          <ul style={{ color: 'var(--text-secondary)', lineHeight: '1.8' }}>
-            <li>Always use TypeScript for compile-time type checking</li>
-            <li>Enable <code>preserveTypes</code> option for guaranteed roundtrip accuracy</li>
-            <li>Validate data before conversion in production environments</li>
-          </ul>
-        </section>
+                <Separator />
 
-        {/* Links */}
-        <section className="docs-section">
-          <h2>Additional Resources</h2>
-          <div className="features-grid" style={{ marginTop: 'var(--space-lg)' }}>
-            <a href="https://github.com/ersinkoc/minote" className="feature-card" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
-              <h3 className="feature-title">GitHub Repository</h3>
-              <p className="feature-description">
-                View source code, report issues, and contribute to the project.
-              </p>
-            </a>
-            <a href="/playground" className="feature-card" style={{ textDecoration: 'none' }}>
-              <h3 className="feature-title">Interactive Playground</h3>
-              <p className="feature-description">
-                Try MINOTE in your browser with live examples and token counting.
-              </p>
-            </a>
-            <a href="/examples" className="feature-card" style={{ textDecoration: 'none' }}>
-              <h3 className="feature-title">Example Gallery</h3>
-              <p className="feature-description">
-                Explore real-world examples showcasing MINOTE's capabilities.
-              </p>
-            </a>
-          </div>
-        </section>
+                <div>
+                  <h4 className="font-semibold mb-2">Returns</h4>
+                  <div className="bg-muted/50 rounded-lg p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <Badge>string</Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      The MINOTE-formatted string representation of the input data.
+                    </p>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h4 className="font-semibold mb-2">Example</h4>
+                  <CodeBlock
+                    language="typescript"
+                    code={`const data = { name: "Alice", age: 30 };
+const minote = jsonToMinote(data);
+// Output: "name:Alice\\nage:30"`}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>minoteToJson()</CardTitle>
+                <CardDescription>Convert MINOTE format back to JSON</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="font-semibold mb-2">Signature</h4>
+                  <CodeBlock
+                    language="typescript"
+                    code={`function minoteToJson(minote: string): any`}
+                    showLineNumbers={false}
+                  />
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h4 className="font-semibold mb-2">Parameters</h4>
+                  <div className="bg-muted/50 rounded-lg p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <code className="text-sm font-mono">minote</code>
+                      <Badge>string</Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      The MINOTE-formatted string to parse.
+                    </p>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h4 className="font-semibold mb-2">Returns</h4>
+                  <div className="bg-muted/50 rounded-lg p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <Badge>any</Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      The parsed JSON data structure. The exact type depends on the input.
+                    </p>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h4 className="font-semibold mb-2">Example</h4>
+                  <CodeBlock
+                    language="typescript"
+                    code={`const minote = "name:Alice\\nage:30";
+const json = minoteToJson(minote);
+// Output: { name: "Alice", age: 30 }`}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Format Spec Tab */}
+          <TabsContent value="format" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>MINOTE Format Specification</CardTitle>
+                <CardDescription>Understanding the MINOTE syntax</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Key-Value Pairs</h3>
+                  <p className="text-muted-foreground mb-3">
+                    Simple key-value pairs use colon notation:
+                  </p>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2">JSON</h4>
+                      <CodeBlock
+                        code={`{
+  "name": "Alice",
+  "age": 30
+}`}
+                        language="json"
+                      />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2">MINOTE</h4>
+                      <CodeBlock
+                        code={`name:Alice
+age:30`}
+                        language="text"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Nested Objects</h3>
+                  <p className="text-muted-foreground mb-3">
+                    Nested structures use indentation:
+                  </p>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2">JSON</h4>
+                      <CodeBlock
+                        code={`{
+  "user": {
+    "name": "Alice",
+    "email": "alice@example.com"
+  }
+}`}
+                        language="json"
+                      />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2">MINOTE</h4>
+                      <CodeBlock
+                        code={`user:
+  name:Alice
+  email:alice@example.com`}
+                        language="text"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Arrays of Objects (Table Format)</h3>
+                  <p className="text-muted-foreground mb-3">
+                    Arrays with shared keys become tables with header rows (prefix: #):
+                  </p>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2">JSON</h4>
+                      <CodeBlock
+                        code={`{
+  "users": [
+    {
+      "id": 1,
+      "name": "Alice"
+    },
+    {
+      "id": 2,
+      "name": "Bob"
+    }
+  ]
+}`}
+                        language="json"
+                      />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2">MINOTE</h4>
+                      <CodeBlock
+                        code={`users:
+#id,name
+1,Alice
+2,Bob`}
+                        language="text"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Boolean Values</h3>
+                  <p className="text-muted-foreground mb-3">
+                    Booleans are shortened to single characters:
+                  </p>
+                  <ul className="space-y-2 text-sm">
+                    <li className="flex items-center gap-2">
+                      <code className="bg-muted px-2 py-0.5 rounded">t</code>
+                      <span className="text-muted-foreground">represents</span>
+                      <code className="bg-muted px-2 py-0.5 rounded">true</code>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <code className="bg-muted px-2 py-0.5 rounded">f</code>
+                      <span className="text-muted-foreground">represents</span>
+                      <code className="bg-muted px-2 py-0.5 rounded">false</code>
+                    </li>
+                  </ul>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Null Values</h3>
+                  <p className="text-muted-foreground mb-3">
+                    Null values are represented as empty or special markers:
+                  </p>
+                  <CodeBlock
+                    code={`name:Alice
+email:
+active:t`}
+                    language="text"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Examples Tab */}
+          <TabsContent value="examples" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Common Use Cases</CardTitle>
+                <CardDescription>Real-world examples of MINOTE usage</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">User Database Records</h3>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Badge className="mb-2">JSON - 245 tokens</Badge>
+                      <CodeBlock
+                        code={`{
+  "users": [
+    {
+      "id": 101,
+      "username": "alice_j",
+      "email": "alice@company.com",
+      "role": "admin",
+      "verified": true,
+      "lastLogin": "2024-01-15"
+    },
+    {
+      "id": 102,
+      "username": "bob_smith",
+      "email": "bob@company.com",
+      "role": "user",
+      "verified": true,
+      "lastLogin": "2024-01-14"
+    }
+  ]
+}`}
+                        language="json"
+                      />
+                    </div>
+                    <div>
+                      <Badge variant="success" className="mb-2">MINOTE - 128 tokens (-48%)</Badge>
+                      <CodeBlock
+                        code={`users:
+#id,username,email,role,verified,lastLogin
+101,alice_j,alice@company.com,admin,t,2024-01-15
+102,bob_smith,bob@company.com,user,t,2024-01-14`}
+                        language="text"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">API Response Data</h3>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Badge className="mb-2">JSON - 189 tokens</Badge>
+                      <CodeBlock
+                        code={`{
+  "status": "success",
+  "data": {
+    "products": [
+      {
+        "id": "P001",
+        "name": "Laptop",
+        "price": 999.99,
+        "inStock": true
+      },
+      {
+        "id": "P002",
+        "name": "Mouse",
+        "price": 29.99,
+        "inStock": false
+      }
+    ]
+  }
+}`}
+                        language="json"
+                      />
+                    </div>
+                    <div>
+                      <Badge variant="success" className="mb-2">MINOTE - 98 tokens (-48%)</Badge>
+                      <CodeBlock
+                        code={`status:success
+data:
+  products:
+  #id,name,price,inStock
+  P001,Laptop,999.99,t
+  P002,Mouse,29.99,f`}
+                        language="text"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
-  )
+  );
 }
