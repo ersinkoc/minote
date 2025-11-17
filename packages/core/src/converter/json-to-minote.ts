@@ -13,7 +13,6 @@ import {
   inferType,
   isTableCandidate,
   extractSchema,
-  isPlainObject,
 } from '../utils/type-inference'
 
 export class JsonToMinoteConverter {

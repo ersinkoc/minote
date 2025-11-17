@@ -14,9 +14,9 @@ export class SchemaValidator {
     }
   }
 
-  validate(value: MinoteValue, schema: SchemaDefinition): void {
+  validate(_value: MinoteValue, _schema: SchemaDefinition): void {
     this.issues = []
-    // Basic validation stub
+    // TODO: Implement schema validation
     // Full implementation would validate types, required fields, etc.
 
     if (this.issues.length > 0) {

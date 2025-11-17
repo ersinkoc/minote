@@ -69,8 +69,10 @@ describe('Roundtrip Conversion', () => {
   })
 
   it('should handle TechCorp example from fixtures', () => {
+    const jsonPath = join(__dirname, '../fixtures/techcorp.json')
+
+    // Check if fixture exists
     try {
-      const jsonPath = join(__dirname, '../fixtures/techcorp.json')
       const techcorpJson = readFileSync(jsonPath, 'utf-8')
       const original = JSON.parse(techcorpJson)
 
@@ -82,8 +84,8 @@ describe('Roundtrip Conversion', () => {
 
       expect(deepEqual(result, original)).toBe(true)
     } catch (error) {
-      // If file doesn't exist, skip test
-      console.log('Skipping TechCorp test - fixture not found')
+      // If file doesn't exist, mark as pending
+      expect((error as NodeJS.ErrnoException).code).toBe('ENOENT')
     }
   })
 

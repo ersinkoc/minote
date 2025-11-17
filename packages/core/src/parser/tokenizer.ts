@@ -207,7 +207,6 @@ export class Tokenizer {
   }
 
   private scanQuotedString(): void {
-    const start = this.pos
     this.advance() // consume opening quote
 
     let value = ''
@@ -238,7 +237,6 @@ export class Tokenizer {
 
   private scanNumber(): void {
     const start = this.pos
-    let hasDecimal = false
 
     // Negative sign
     if (this.current() === '-') {
@@ -252,7 +250,6 @@ export class Tokenizer {
 
     // Decimal part
     if (this.current() === '.' && this.isDigit(this.peek())) {
-      hasDecimal = true
       this.advance() // consume '.'
       while (this.isDigit(this.current())) {
         this.advance()

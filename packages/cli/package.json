@@ -2,7 +2,12 @@
   "name": "minote-cli",
   "version": "1.0.0",
   "description": "MINOTE CLI - Command-line tools for MINOTE",
-  "keywords": ["minote", "cli", "converter", "parser"],
+  "keywords": [
+    "minote",
+    "cli",
+    "converter",
+    "parser"
+  ],
   "bin": {
     "minote": "./dist/index.js"
   },
@@ -15,16 +20,16 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "minote": "workspace:*",
-    "commander": "^11.1.0",
     "chalk": "^4.1.2",
+    "commander": "^11.1.0",
+    "minote": "workspace:*",
     "ora": "^5.4.1"
   },
   "devDependencies": {
+    "@types/node": "^20.10.0",
     "tsup": "^8.0.1",
     "typescript": "^5.3.3",
-    "vitest": "^1.0.4",
-    "@types/node": "^20.10.0"
+    "vitest": "^4.0.9"
   },
   "engines": {
     "node": ">=18.0.0"
