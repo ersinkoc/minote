@@ -1,0 +1,41 @@
+{
+  "name": "minote",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MINOTE - Minimal Notation for LLMs",
+  "keywords": ["minote", "notation", "llm", "json", "parser", "minimal"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ersinkoc/minote"
+  },
+  "license": "MIT",
+  "author": "Ersin Koc",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "pnpm -r run build",
+    "test": "pnpm -r run test",
+    "test:coverage": "pnpm -r run test:coverage",
+    "lint": "pnpm -r run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\"",
+    "dev": "pnpm -r --parallel run dev",
+    "clean": "pnpm -r run clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "prettier": "^3.1.1",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.4"
+  },
+  "packageManager": "pnpm@8.12.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}

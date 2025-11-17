@@ -1,0 +1,48 @@
+{
+  "name": "minote",
+  "version": "1.0.0",
+  "description": "MINOTE - Minimal Notation for LLMs. Core parser, serializer, and converter.",
+  "keywords": ["minote", "notation", "llm", "json", "parser", "serializer", "converter"],
+  "homepage": "https://minote.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ersinkoc/minote",
+    "directory": "packages/core"
+  },
+  "license": "MIT",
+  "author": "Ersin Koc",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src --ext .ts",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^1.0.4",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

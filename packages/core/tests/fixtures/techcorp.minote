@@ -1,0 +1,11 @@
+company: TechCorp
+founded: 2010@i
+employees
+  #Row[id@s name@s dept@s salary@i]
+  |e001|Alice|Engineering|150000|
+  |e002|Bob|Marketing|120000|
+  |e003|Charlie|Engineering|140000|
+offices
+  #Row[city@s country@s employees@i]
+  |San Francisco|USA|50|
+  |London|UK|30|

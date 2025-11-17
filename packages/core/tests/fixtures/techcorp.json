@@ -1,0 +1,36 @@
+{
+  "company": "TechCorp",
+  "founded": 2010,
+  "employees": [
+    {
+      "id": "e001",
+      "name": "Alice",
+      "dept": "Engineering",
+      "salary": 150000
+    },
+    {
+      "id": "e002",
+      "name": "Bob",
+      "dept": "Marketing",
+      "salary": 120000
+    },
+    {
+      "id": "e003",
+      "name": "Charlie",
+      "dept": "Engineering",
+      "salary": 140000
+    }
+  ],
+  "offices": [
+    {
+      "city": "San Francisco",
+      "country": "USA",
+      "employees": 50
+    },
+    {
+      "city": "London",
+      "country": "UK",
+      "employees": 30
+    }
+  ]
+}
