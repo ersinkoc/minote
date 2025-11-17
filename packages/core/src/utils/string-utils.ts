@@ -1,3 +1,5 @@
+import { SAFE_PATTERNS } from './regex-safety'
+
 /**
  * Check if a string needs quotes in MINOTE format
  */
@@ -47,11 +49,11 @@ export function escapeString(str: string): string {
  */
 export function unescapeString(str: string): string {
   return str
+    .replace(/\\\\/g, '\\')
     .replace(/\\n/g, '\n')
     .replace(/\\r/g, '\r')
     .replace(/\\t/g, '\t')
     .replace(/\\"/g, '"')
-    .replace(/\\\\/g, '\\')
 }
 
 /**
@@ -83,21 +85,21 @@ export function parseString(str: string): string {
  * Check if a string is a valid identifier (for keys)
  */
 export function isValidIdentifier(str: string): boolean {
-  return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(str)
+  return SAFE_PATTERNS.IDENTIFIER.test(str)
 }
 
 /**
  * Split a string into lines, preserving line endings
  */
 export function splitLines(str: string): string[] {
-  return str.split(/\r?\n/)
+  return str.split(SAFE_PATTERNS.NEWLINE_SPLIT)
 }
 
 /**
  * Count leading whitespace
  */
 export function countIndent(line: string): number {
-  const match = line.match(/^( *)/)
+  const match = line.match(SAFE_PATTERNS.SPACES)
   return match ? match[1].length : 0
 }
 

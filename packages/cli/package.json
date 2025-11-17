@@ -17,7 +17,7 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "test": "vitest run"
+    "test": "echo 'CLI package has no tests - all tests are in packages/core'"
   },
   "dependencies": {
     "chalk": "^4.1.2",

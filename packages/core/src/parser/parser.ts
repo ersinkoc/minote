@@ -19,6 +19,7 @@ export class MinoteParser {
   private _options: Required<ParserOptions>
   private tokens: Token[] = []
   private current = 0
+  private depth = 0
 
   constructor(options: ParserOptions = {}) {
     this._options = {
@@ -26,6 +27,9 @@ export class MinoteParser {
       allowImplicitTypes: options.allowImplicitTypes ?? true,
       tabularThreshold: options.tabularThreshold ?? 3,
       includeLocations: options.includeLocations ?? false,
+      maxInputSize: options.maxInputSize ?? 10 * 1024 * 1024, // 10MB
+      maxTokens: options.maxTokens ?? 1000000,
+      maxDepth: options.maxDepth ?? 1000,
     }
   }
 
@@ -34,8 +38,11 @@ export class MinoteParser {
    */
   parse(input: string): MinoteDocument {
     try {
+      // Reset depth tracking
+      this.depth = 0
+
       // Tokenize
-      const tokenizer = new Tokenizer(input)
+      const tokenizer = new Tokenizer(input, this._options)
       this.tokens = tokenizer.tokenize()
       this.current = 0
 
@@ -73,32 +80,38 @@ export class MinoteParser {
   }
 
   private parseObject(): MinoteObject {
-    const properties: MinoteProperty[] = []
+    this.enterNested()
 
-    while (!this.isAtEnd() && !this.check(TokenType.DEDENT) && !this.check(TokenType.EOF)) {
-      this.skipNewlines()
+    try {
+      const properties: MinoteProperty[] = []
 
-      if (this.isAtEnd() || this.check(TokenType.DEDENT) || this.check(TokenType.EOF)) {
-        break
-      }
+      while (!this.isAtEnd() && !this.check(TokenType.DEDENT) && !this.check(TokenType.EOF)) {
+        this.skipNewlines()
 
-      // Parse property
-      const property = this.parseProperty()
-      if (property) {
-        properties.push(property)
-      } else {
-        // If parseProperty returns null, we should advance to avoid infinite loops
-        if (!this.isAtEnd()) {
-          this.advance()
+        if (this.isAtEnd() || this.check(TokenType.DEDENT) || this.check(TokenType.EOF)) {
+          break
         }
+
+        // Parse property
+        const property = this.parseProperty()
+        if (property) {
+          properties.push(property)
+        } else {
+          // If parseProperty returns null, we should advance to avoid infinite loops
+          if (!this.isAtEnd()) {
+            this.advance()
+          }
+        }
+
+        this.skipNewlines()
       }
 
-      this.skipNewlines()
-    }
-
-    return {
-      type: 'Object',
-      properties,
+      return {
+        type: 'Object',
+        properties,
+      }
+    } finally {
+      this.exitNested()
     }
   }
 
@@ -140,6 +153,17 @@ export class MinoteParser {
         } else {
           this.current = savedPos
         }
+      } else if (this.check(TokenType.INDENT)) {
+        // Direct indent after property name (e.g., "users: \n  #Row[...]")
+        this.advance() // consume INDENT
+        // Parse the block value (could be table, object, etc.)
+        const value = this.parseAnyValue()
+        this.expect(TokenType.DEDENT)
+        return {
+          type: 'Property',
+          key,
+          value,
+        }
       }
 
       // If we get here, we need a colon (inline value without colon is invalid)
@@ -151,14 +175,6 @@ export class MinoteParser {
 
     this.advance() // consume ':'
 
-    // Check for type annotation
-    let typeAnnotation
-    if (this.check(TokenType.AT)) {
-      this.advance() // consume '@'
-      const typeToken = this.advance()
-      typeAnnotation = parseTypeAnnotation(typeToken.value)
-    }
-
     // Check if value is on same line or next line
     this.skipSpaces()
 
@@ -169,18 +185,31 @@ export class MinoteParser {
       this.skipNewlines()
 
       if (!this.check(TokenType.INDENT)) {
-        throw new ParseError(
-          `Expected indented value for property '${key}'`,
-          this.peek().position
-        )
+        // Handle empty value (property with no value)
+        // After skipNewlines(), if we don't see INDENT, it means no value was provided
+        value = null
+      } else {
+        this.advance() // consume INDENT
+        value = this.parseAnyValue()
+        this.expect(TokenType.DEDENT)
       }
-
-      this.advance() // consume INDENT
-      value = this.parseAnyValue()
-      this.expect(TokenType.DEDENT)
     } else {
-      // Inline value
-      value = this.parseInlineValue()
+      // Check for empty inline value (property with colon but no value)
+      if (this.check(TokenType.NEWLINE) || this.check(TokenType.DEDENT) || this.isAtEnd()) {
+        // Empty value - represent as null
+        value = null
+      } else {
+        // Inline value
+        value = this.parseInlineValue()
+      }
+    }
+
+    // Check for type annotation after value
+    let typeAnnotation
+    if (this.check(TokenType.AT)) {
+      this.advance() // consume '@'
+      const typeToken = this.advance()
+      typeAnnotation = parseTypeAnnotation(typeToken.value)
     }
 
     return {
@@ -216,10 +245,23 @@ export class MinoteParser {
 
     // Object (nested properties)
     if (this.check(TokenType.IDENTIFIER)) {
-      // Look ahead - if next is colon, it's an object
+      // Look ahead - if next is colon, newline+indent, or lbrace, it's an object
       const next = this.peekNext()
-      if (next && next.type === TokenType.COLON) {
-        return this.parseObject()
+      const nextAfterThat = this.peekNextNext()
+      if (next && (
+        next.type === TokenType.COLON ||
+        (next.type === TokenType.NEWLINE && nextAfterThat && nextAfterThat.type === TokenType.INDENT) ||
+        next.type === TokenType.LBRACE
+      )) {
+        if (next.type === TokenType.LBRACE) {
+          // Special case: identifier{...} - treat as inline object with the identifier as name
+          const identifier = this.advance().value // consume identifier
+          this.advance() // consume LBRACE
+          const inlineObject = this.parseInlineObjectContent()
+          return inlineObject
+        } else {
+          return this.parseObject()
+        }
       }
     }
 
@@ -248,7 +290,7 @@ export class MinoteParser {
 
     switch (token.type) {
       case TokenType.STRING:
-        value = unescapeString(token.value)
+        value = token.value // Tokenizer already handles unescaping
         break
       case TokenType.NUMBER:
         value = parseFloat(token.value)
@@ -269,45 +311,50 @@ export class MinoteParser {
         )
     }
 
-    // Skip any type annotation (@type) after primitive values
-    if (this.check(TokenType.AT)) {
-      this.advance() // consume '@'
-      if (!this.isAtEnd() && !this.check(TokenType.NEWLINE) && !this.check(TokenType.EOF)) {
-        this.advance() // consume type identifier
-      }
-    }
-
     return value
   }
 
   private parseInlineArray(): MinoteArray {
-    this.expect(TokenType.LBRACKET)
+    this.enterNested()
 
-    const elements: MinoteValue[] = []
+    try {
+      this.expect(TokenType.LBRACKET)
 
-    while (!this.check(TokenType.RBRACKET) && !this.isAtEnd()) {
-      this.skipSpaces()
+      const elements: MinoteValue[] = []
 
-      if (this.check(TokenType.RBRACKET)) {
-        break
+      while (!this.check(TokenType.RBRACKET) && !this.isAtEnd()) {
+        this.skipSpaces()
+
+        if (this.check(TokenType.RBRACKET)) {
+          break
+        }
+
+        // Check if we have a multiline element (newline after opening bracket)
+        if (this.check(TokenType.NEWLINE)) {
+          // Switch to multiline array parsing mode
+          return this.parseMultilineArrayFromInline(elements)
+        }
+
+        elements.push(this.parseInlineValue())
+
+        this.skipSpaces()
       }
 
-      elements.push(this.parsePrimitive())
+      this.expect(TokenType.RBRACKET)
 
-      this.skipSpaces()
-    }
-
-    this.expect(TokenType.RBRACKET)
-
-    return {
-      type: 'Array',
-      elements,
-      style: 'inline',
+      return {
+        type: 'Array',
+        elements,
+        style: 'inline',
+      }
+    } finally {
+      this.exitNested()
     }
   }
 
-  private parseMultilineArray(): MinoteArray {
-    const elements: MinoteValue[] = []
+  private parseMultilineArrayFromInline(elements: MinoteValue[] = []): MinoteArray {
+    // Skip the newline we detected
+    this.skipNewlines()
 
     while (this.check(TokenType.DASH)) {
       this.advance() // consume '-'
@@ -318,6 +365,8 @@ export class MinoteParser {
       this.skipNewlines()
     }
 
+    this.expect(TokenType.RBRACKET)
+
     return {
       type: 'Array',
       elements,
@@ -325,41 +374,114 @@ export class MinoteParser {
     }
   }
 
-  private parseInlineObject(): MinoteObject {
-    this.expect(TokenType.LBRACE)
+  private parseMultilineArray(): MinoteArray {
+    this.enterNested()
 
-    const properties: MinoteProperty[] = []
+    try {
+      const elements: MinoteValue[] = []
 
-    while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
-      this.skipSpaces()
+      while (this.check(TokenType.DASH)) {
+        this.advance() // consume '-'
+        this.skipSpaces()
 
-      if (this.check(TokenType.RBRACE)) {
-        break
+        elements.push(this.parseInlineValue())
+
+        this.skipNewlines()
       }
 
-      // Key
-      const key = this.advance().value
-
-      this.expect(TokenType.COLON)
-
-      // Value
-      const value = this.parsePrimitive()
-
-      properties.push({
-        type: 'Property',
-        key,
-        value,
-        inline: true,
-      })
-
-      this.skipSpaces()
+      return {
+        type: 'Array',
+        elements,
+        style: 'multiline',
+      }
+    } finally {
+      this.exitNested()
     }
+  }
 
-    this.expect(TokenType.RBRACE)
+  private parseInlineObject(): MinoteObject {
+    this.enterNested()
 
-    return {
-      type: 'Object',
-      properties,
+    try {
+      this.expect(TokenType.LBRACE)
+
+      const properties: MinoteProperty[] = []
+
+      while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
+        this.skipSpaces()
+
+        if (this.check(TokenType.RBRACE)) {
+          break
+        }
+
+        // Key
+        const key = this.advance().value
+
+        this.expect(TokenType.COLON)
+
+        // Value
+        const value = this.parseInlineValue()
+
+        properties.push({
+          type: 'Property',
+          key,
+          value,
+          inline: true,
+        })
+
+        this.skipSpaces()
+      }
+
+      this.expect(TokenType.RBRACE)
+
+      return {
+        type: 'Object',
+        properties,
+      }
+    } finally {
+      this.exitNested()
+    }
+  }
+
+  private parseInlineObjectContent(): MinoteObject {
+    this.enterNested()
+
+    try {
+      const properties: MinoteProperty[] = []
+
+      while (!this.check(TokenType.RBRACE) && !this.isAtEnd()) {
+        this.skipSpaces()
+
+        if (this.check(TokenType.RBRACE)) {
+          break
+        }
+
+        // Key
+        const key = this.advance().value
+
+        this.expect(TokenType.COLON)
+
+        // Value
+        const value = this.parseInlineValue()
+
+        properties.push({
+          type: 'Property',
+          key,
+          value,
+          inline: true,
+        })
+
+        this.skipSpaces()
+      }
+
+      this.expect(TokenType.RBRACE)
+
+      return {
+        type: 'Object',
+        properties,
+      }
+    } finally {
+      this.exitNested()
     }
   }
 
@@ -477,6 +599,10 @@ export class MinoteParser {
     return this.tokens[this.current + 1]
   }
 
+  private peekNextNext(): Token | undefined {
+    return this.tokens[this.current + 2]
+  }
+
   private previous(): Token {
     return this.tokens[this.current - 1]
   }
@@ -494,5 +620,19 @@ export class MinoteParser {
   private skipSpaces(): void {
     // Spaces are already handled by tokenizer
     // This is a no-op but kept for clarity
+  }
+
+  private enterNested(): void {
+    this.depth++
+    if (this.depth > this._options.maxDepth) {
+      throw new ParseError(
+        `Nesting depth ${this.depth} exceeds maximum allowed depth of ${this._options.maxDepth}`,
+        this.peek().position
+      )
+    }
+  }
+
+  private exitNested(): void {
+    this.depth--
   }
 }

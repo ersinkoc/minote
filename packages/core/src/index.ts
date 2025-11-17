@@ -36,6 +36,13 @@ export {
 } from './utils/type-inference'
 export { needsQuotes, escapeString, unescapeString, formatString } from './utils/string-utils'
 export { estimateTokens, calculateReduction } from './utils/helpers'
+export {
+  isSafeRegex,
+  safeRegexTest,
+  safeRegexReplace,
+  SAFE_PATTERNS,
+  type RegexSafetyOptions,
+} from './utils/regex-safety'
 
 // Convenience functions
 export { parse, stringify, toMinote, toJson, format } from './convenience'

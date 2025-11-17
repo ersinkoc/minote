@@ -21,16 +21,24 @@ export interface MinoteToJsonOptions {
    * @default 2
    */
   indent?: number
+
+  /**
+   * Maximum depth for recursive conversion to prevent stack overflow
+   * @default 1000
+   */
+  maxDepth?: number
 }
 
 export class MinoteToJsonConverter {
   private options: Required<MinoteToJsonOptions>
   private parser: MinoteParser
+  private depth = 0
 
   constructor(options: MinoteToJsonOptions = {}) {
     this.options = {
       pretty: options.pretty ?? true,
       indent: options.indent ?? 2,
+      maxDepth: options.maxDepth ?? 1000,
     }
 
     this.parser = new MinoteParser()
@@ -40,6 +48,7 @@ export class MinoteToJsonConverter {
    * Convert MINOTE string to JSON
    */
   convert(minote: string): string {
+    this.depth = 0
     const ast = this.parser.parse(minote)
     const obj = this.astToObject(ast.body)
 
@@ -52,6 +61,7 @@ export class MinoteToJsonConverter {
    * Convert MINOTE to JavaScript object
    */
   convertToObject(minote: string): unknown {
+    this.depth = 0
     const ast = this.parser.parse(minote)
     return this.astToObject(ast.body)
   }
@@ -62,24 +72,36 @@ export class MinoteToJsonConverter {
       return value
     }
 
-    // Object
-    if (isMinoteObject(value)) {
-      return this.objectToJs(value)
+    // Check depth limit
+    this.depth++
+    if (this.depth > this.options.maxDepth) {
+      throw new Error(
+        `JSON conversion depth ${this.depth} exceeds maximum allowed depth of ${this.options.maxDepth}`
+      )
     }
 
-    // Array
-    if (isMinoteArray(value)) {
-      return this.arrayToJs(value)
-    }
+    try {
+      // Object
+      if (isMinoteObject(value)) {
+        return this.objectToJs(value)
+      }
 
-    // Table
-    if (isMinoteTable(value)) {
-      return this.tableToJs(value)
-    }
+      // Array
+      if (isMinoteArray(value)) {
+        return this.arrayToJs(value)
+      }
 
-    throw new Error(
-      `Unknown AST node type. Expected MinoteObject, MinoteArray, or MinoteTable, but got: ${JSON.stringify(value)}`
-    )
+      // Table
+      if (isMinoteTable(value)) {
+        return this.tableToJs(value)
+      }
+
+      throw new Error(
+        `Unknown AST node type. Expected MinoteObject, MinoteArray, or MinoteTable, but got: ${JSON.stringify(value)}`
+      )
+    } finally {
+      this.depth--
+    }
   }
 
   private objectToJs(obj: MinoteObject): Record<string, unknown> {

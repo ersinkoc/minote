@@ -78,6 +78,11 @@ export class MinoteStringifier {
   }
 
   private stringifyObject(obj: MinoteObject, depth: number): string {
+    // Handle empty object case
+    if (obj.properties.length === 0) {
+      return '{}'
+    }
+
     const nextInd = indent(depth + 1, this.options.indent)
 
     let result = ''
@@ -92,15 +97,27 @@ export class MinoteStringifier {
           ? formatTypeAnnotation(prop.typeAnnotation)
           : ''
 
+      // Handle empty values (null or empty objects/arrays)
+      if (prop.value === null ||
+          (isMinoteObject(prop.value) && prop.value.properties.length === 0) ||
+          (isMinoteArray(prop.value) && prop.value.elements.length === 0)) {
+        result += `${nextInd}${key}: ${this.stringifyValue(prop.value, depth + 1)}${typeAnnotation ? ' ' + typeAnnotation : ''}\n`
+        continue
+      }
+
       // Check if should be inlined
       if (this.shouldInline(prop.value)) {
-        const value = this.stringifyValue(prop.value, depth + 1)
-        result += `${nextInd}${key}: ${value}${typeAnnotation}\n`
+        const value = this.stringifyValue(prop.value, 0) // Don't add extra indent for inline values
+        result += `${nextInd}${key}: ${value}${typeAnnotation ? ' ' + typeAnnotation : ''}\n`
       } else {
         // Multi-line value
-        result += `${nextInd}${key}${typeAnnotation}:\n`
-        const valueStr = this.stringifyValue(prop.value, depth + 2)
-        result += valueStr
+        result += `${nextInd}${key}:\n`
+        const valueStr = this.stringifyValue(prop.value, depth + 1)
+        if (!valueStr.endsWith('\n')) {
+          result += valueStr + '\n'
+        } else {
+          result += valueStr
+        }
       }
     }
 
@@ -116,16 +133,36 @@ export class MinoteStringifier {
   }
 
   private stringifyInlineArray(arr: MinoteArray): string {
-    const elements = arr.elements.map(el => this.stringifyValue(el, 0))
+    const elements = arr.elements.map(el => {
+      // For complex objects, convert to proper MINOTE inline object format
+      if (isMinoteObject(el) && el.properties.length > 0) {
+        return this.stringifyInlineObject(el)
+      }
+      return this.stringifyValue(el, 0)
+    })
     return `[${elements.join(' ')}]`
   }
 
   private stringifyMultilineArray(arr: MinoteArray, depth: number): string {
     const ind = indent(depth, this.options.indent)
+    const nextInd = indent(depth + 1, this.options.indent)
+    const elementInd = indent(depth + 2, this.options.indent) // Correct indentation for element content
     let result = ''
 
     for (const element of arr.elements) {
-      result += `${ind}- ${this.stringifyValue(element, depth)}\n`
+      if (this.shouldInline(element)) {
+        // Simple inline element
+        result += `${ind}- ${this.stringifyValue(element, 0)}\n`
+      } else {
+        // Complex multi-line element
+        result += `${ind}-\n`
+        const valueStr = this.stringifyValue(element, depth + 2) // Use depth + 2 for proper element indentation
+        if (!valueStr.endsWith('\n')) {
+          result += valueStr + '\n'
+        } else {
+          result += valueStr
+        }
+      }
     }
 
     return result
@@ -148,6 +185,26 @@ export class MinoteStringifier {
     }
 
     return result
+  }
+
+  private stringifyInlineObject(obj: MinoteObject): string {
+    const properties = this.options.sortKeys
+      ? [...obj.properties].sort((a, b) => a.key.localeCompare(b.key))
+      : obj.properties
+
+    if (properties.length === 0) {
+      return '{}'
+    }
+
+    const props = properties.map(prop => {
+      const key = formatString(prop.key)
+      const value = this.stringifyValue(prop.value, 0)
+      // Skip type annotations in inline objects - they're only supported in multiline format
+
+      return `${key}: ${value}`
+    })
+
+    return `{${props.join(' ')}}`
   }
 
   private formatCell(value: MinoteValue): string {
@@ -227,16 +284,14 @@ export class MinoteStringifier {
       return true
     }
 
-    // Inline small objects
-    if (isMinoteObject(value)) {
-      return value.properties.length <= this.options.inlineThreshold &&
-        value.properties.every(p => this.shouldInline(p.value))
+    // Respect explicit array style
+    if (isMinoteArray(value)) {
+      return value.style === 'inline'
     }
 
-    // Inline small arrays
-    if (isMinoteArray(value)) {
-      return value.elements.length <= this.options.inlineThreshold &&
-        value.elements.every(el => this.shouldInline(el))
+    // Never inline objects (always use multiline for consistency)
+    if (isMinoteObject(value)) {
+      return false
     }
 
     // Never inline tables

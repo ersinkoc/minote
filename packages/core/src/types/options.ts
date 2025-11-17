@@ -25,6 +25,24 @@ export interface ParserOptions {
    * @default false
    */
   includeLocations?: boolean
+
+  /**
+   * Maximum input size in bytes to prevent memory exhaustion
+   * @default 10485760 (10MB)
+   */
+  maxInputSize?: number
+
+  /**
+   * Maximum number of tokens to prevent infinite tokenization
+   * @default 1000000
+   */
+  maxTokens?: number
+
+  /**
+   * Maximum nesting depth for objects and arrays
+   * @default 1000
+   */
+  maxDepth?: number
 }
 
 /**
@@ -101,6 +119,12 @@ export interface JsonConversionOptions extends SerializerOptions {
    * @default true
    */
   optimize?: boolean
+
+  /**
+   * Maximum depth for recursive conversion to prevent stack overflow
+   * @default 1000
+   */
+  maxDepth?: number
 }
 
 /**

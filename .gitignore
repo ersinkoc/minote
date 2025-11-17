@@ -37,3 +37,5 @@ yarn-error.log*
 # Temp
 *.tmp
 .cache/
+debug-logs/
+*.minote

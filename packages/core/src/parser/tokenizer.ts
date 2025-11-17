@@ -1,5 +1,7 @@
 import { Position } from '../types/ast'
 import { ParseError } from '../errors'
+import { ParserOptions } from '../types/options'
+import { SAFE_PATTERNS } from '../utils/regex-safety'
 
 export enum TokenType {
   // Literals
@@ -40,9 +42,22 @@ export class Tokenizer {
   private column = 1
   private tokens: Token[] = []
   private indentStack: number[] = [0]
+  private options: Required<Pick<ParserOptions, 'maxInputSize' | 'maxTokens'>>
 
-  constructor(input: string) {
+  constructor(input: string, options: ParserOptions = {}) {
     this.input = input
+    this.options = {
+      maxInputSize: options.maxInputSize ?? 10 * 1024 * 1024, // 10MB
+      maxTokens: options.maxTokens ?? 1000000,
+    }
+
+    // Check input size limit immediately
+    if (this.input.length > this.options.maxInputSize) {
+      throw new ParseError(
+        `Input size ${this.input.length} bytes exceeds maximum allowed size of ${this.options.maxInputSize} bytes`,
+        { line: 1, column: 1, offset: 0 }
+      )
+    }
   }
 
   tokenize(): Token[] {
@@ -97,7 +112,8 @@ export class Tokenizer {
       const isSchema = nextChar && /[a-zA-Z_]/.test(nextChar)
 
       // Comments: # not followed by letter/identifier AND preceded by whitespace
-      if (!isSchema && /\s/.test(prevChar)) {
+      // But not if # is part of an identifier (like in emails)
+      if (!isSchema && /\s/.test(prevChar) && this.isAtStartOfLine()) {
         this.skipComment()
         return
       }
@@ -154,15 +170,16 @@ export class Tokenizer {
       return
     }
 
-    // Number
-    if (this.isDigit(char) || (char === '-' && this.isDigit(this.peek()))) {
-      this.scanNumber()
+    // Identifier, keyword, or unquoted string
+    if (this.isAlpha(char) || char === '_' || char === '+') {
+      this.scanIdentifier()
       return
     }
 
-    // Identifier, keyword, or unquoted string
-    if (this.isAlpha(char) || char === '_') {
-      this.scanIdentifier()
+
+    // Number (strict - only digits and decimal points, not emails or phone numbers)
+    if (this.isDigit(char) || (char === '-' && this.isDigit(this.peek()))) {
+      this.scanNumber()
       return
     }
 
@@ -214,8 +231,21 @@ export class Tokenizer {
       if (this.current() === '\\') {
         this.advance()
         if (!this.isAtEnd()) {
-          value += this.current()
+          const escaped = this.current()
           this.advance()
+
+          // Convert escape sequences to actual characters
+          switch (escaped) {
+            case 'n': value += '\n'; break
+            case 'r': value += '\r'; break
+            case 't': value += '\t'; break
+            case '"': value += '"'; break
+            case '\\': value += '\\'; break
+            default:
+              // Unknown escape sequence, treat literally
+              value += escaped
+              break
+          }
         }
       } else {
         value += this.current()
@@ -238,7 +268,7 @@ export class Tokenizer {
   private scanNumber(): void {
     const start = this.pos
 
-    // Negative sign
+    // Negative sign only (positive numbers don't need explicit +)
     if (this.current() === '-') {
       this.advance()
     }
@@ -274,7 +304,7 @@ export class Tokenizer {
   private scanIdentifier(): void {
     const start = this.pos
 
-    while (this.isAlphaNumeric(this.current()) || this.current() === '_' || this.current() === '-') {
+    while (this.isAlphaNumeric(this.current()) || this.current() === '_' || this.current() === '-' || this.current() === '.' || this.current() === '+') {
       this.advance()
     }
 
@@ -296,7 +326,16 @@ export class Tokenizer {
     }
   }
 
+  
   private addToken(type: TokenType, value: string): void {
+    // Check token limit
+    if (this.tokens.length >= this.options.maxTokens) {
+      throw new ParseError(
+        `Token count ${this.tokens.length} exceeds maximum allowed tokens of ${this.options.maxTokens}`,
+        this.getPosition()
+      )
+    }
+
     this.tokens.push({
       type,
       value,
@@ -337,6 +376,10 @@ export class Tokenizer {
 
   private isAlphaNumeric(char: string): boolean {
     return this.isAlpha(char) || this.isDigit(char)
+  }
+
+  private isAtStartOfLine(): boolean {
+    return this.column === 1
   }
 
   private getPosition(): Position {

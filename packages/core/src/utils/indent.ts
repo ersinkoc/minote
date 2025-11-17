@@ -1,3 +1,5 @@
+import { SAFE_PATTERNS } from './regex-safety'
+
 /**
  * Create an indentation string
  */
@@ -20,7 +22,7 @@ export function indentLines(str: string, level: number, size = 2): string {
  * Get indentation level from a line
  */
 export function getIndentLevel(line: string, size = 2): number {
-  const match = line.match(/^( *)/)
+  const match = line.match(SAFE_PATTERNS.SPACES)
   if (!match) return 0
   return Math.floor(match[1].length / size)
 }
