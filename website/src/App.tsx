@@ -101,7 +101,7 @@ function Navigation() {
             </Button>
 
             <a
-              href="https://github.com/cksachdev/minote"
+              href="https://github.com/ersinkoc/minote"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -156,7 +156,7 @@ function Footer() {
           </div>
 
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <a href="https://github.com/cksachdev/minote" className="hover:text-foreground transition-colors">
+            <a href="https://github.com/ersinkoc/minote" className="hover:text-foreground transition-colors">
               GitHub
             </a>
             <a href="https://www.npmjs.com/package/minote" className="hover:text-foreground transition-colors">

@@ -333,7 +333,7 @@ const json = minoteToJson(minote);`}
                   Try Playground Now
                 </Button>
               </Link>
-              <a href="https://github.com/cksachdev/minote" target="_blank" rel="noopener noreferrer">
+              <a href="https://github.com/ersinkoc/minote" target="_blank" rel="noopener noreferrer">
                 <Button size="xl" variant="outline" className="gap-2">
                   View on GitHub
                   <ArrowRight className="w-5 h-5" />
