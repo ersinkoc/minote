@@ -78,7 +78,7 @@ export class MinoteParser {
     while (!this.isAtEnd() && !this.check(TokenType.DEDENT) && !this.check(TokenType.EOF)) {
       this.skipNewlines()
 
-      if (this.isAtEnd() || this.check(TokenType.DEDENT)) {
+      if (this.isAtEnd() || this.check(TokenType.DEDENT) || this.check(TokenType.EOF)) {
         break
       }
 
@@ -86,6 +86,11 @@ export class MinoteParser {
       const property = this.parseProperty()
       if (property) {
         properties.push(property)
+      } else {
+        // If parseProperty returns null, we should advance to avoid infinite loops
+        if (!this.isAtEnd()) {
+          this.advance()
+        }
       }
 
       this.skipNewlines()
@@ -239,24 +244,40 @@ export class MinoteParser {
 
   private parsePrimitive(): MinoteValue {
     const token = this.advance()
+    let value: any
 
     switch (token.type) {
       case TokenType.STRING:
-        return unescapeString(token.value)
+        value = unescapeString(token.value)
+        break
       case TokenType.NUMBER:
-        return parseFloat(token.value)
+        value = parseFloat(token.value)
+        break
       case TokenType.BOOLEAN:
-        return token.value === 'true'
+        value = token.value === 'true'
+        break
       case TokenType.NULL:
-        return null
+        value = null
+        break
       case TokenType.IDENTIFIER:
-        return token.value
+        value = token.value
+        break
       default:
         throw new ParseError(
           `Unexpected token type: ${token.type}`,
           token.position
         )
     }
+
+    // Skip any type annotation (@type) after primitive values
+    if (this.check(TokenType.AT)) {
+      this.advance() // consume '@'
+      if (!this.isAtEnd() && !this.check(TokenType.NEWLINE) && !this.check(TokenType.EOF)) {
+        this.advance() // consume type identifier
+      }
+    }
+
+    return value
   }
 
   private parseInlineArray(): MinoteArray {
