@@ -72,11 +72,12 @@ export class MinoteStringifier {
       return this.stringifyObject(value, depth)
     }
 
-    throw new Error(`Unknown value type: ${typeof value}`)
+    throw new Error(
+      `Unknown value type: ${typeof value}. Value: ${JSON.stringify(value).slice(0, 100)}`
+    )
   }
 
   private stringifyObject(obj: MinoteObject, depth: number): string {
-    const ind = indent(depth, this.options.indent)
     const nextInd = indent(depth + 1, this.options.indent)
 
     let result = ''
@@ -201,6 +202,11 @@ export class MinoteStringifier {
         const obj: Record<string, unknown> = {}
         row.cells.forEach((cell, i) => {
           const field = value.schema.fields[i]
+          if (!field) {
+            throw new Error(
+              `Table row has more cells (${row.cells.length}) than schema fields (${value.schema.fields.length})`
+            )
+          }
           obj[field.name] = this.minoteToJs(cell)
         })
         return obj

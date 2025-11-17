@@ -77,7 +77,9 @@ export class MinoteToJsonConverter {
       return this.tableToJs(value)
     }
 
-    throw new Error(`Unknown AST node type`)
+    throw new Error(
+      `Unknown AST node type. Expected MinoteObject, MinoteArray, or MinoteTable, but got: ${JSON.stringify(value)}`
+    )
   }
 
   private objectToJs(obj: MinoteObject): Record<string, unknown> {
@@ -100,6 +102,11 @@ export class MinoteToJsonConverter {
 
       row.cells.forEach((cell, i) => {
         const field = table.schema.fields[i]
+        if (!field) {
+          throw new Error(
+            `Table row has more cells (${row.cells.length}) than schema fields (${table.schema.fields.length})`
+          )
+        }
         obj[field.name] = this.astToObject(cell)
       })
 
