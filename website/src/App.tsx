@@ -1,7 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Home, PlaySquare, BookOpen, Code2, Github } from 'lucide-react';
+import { Home, PlaySquare, BookOpen, Code2, Github, Sun, Moon } from 'lucide-react';
 import { Button } from './components/ui/button';
 import { cn } from './lib/utils';
+import { useEffect, useState } from 'react';
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -9,8 +10,35 @@ import PlaygroundPage from './pages/PlaygroundPage';
 import DocsPage from './pages/DocsPage';
 import ExamplesPage from './pages/ExamplesPage';
 
+// Dark mode hook
+function useDarkMode() {
+  const [darkMode, setDarkMode] = useState(() => {
+    // Check localStorage and system preference
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('darkMode');
+      if (saved !== null) {
+        return saved === 'true';
+      }
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('darkMode', darkMode.toString());
+  }, [darkMode]);
+
+  return [darkMode, setDarkMode] as const;
+}
+
 function Navigation() {
   const location = useLocation();
+  const [darkMode, setDarkMode] = useDarkMode();
 
   const navItems = [
     { path: '/', icon: Home, label: 'Home' },
@@ -54,17 +82,35 @@ function Navigation() {
             })}
           </div>
 
-          {/* GitHub Link */}
-          <a
-            href="https://github.com/cksachdev/minote"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Button variant="outline" size="sm" className="gap-2">
-              <Github className="w-4 h-4" />
-              <span className="hidden sm:inline">Star on GitHub</span>
+          {/* Dark Mode Toggle & GitHub */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setDarkMode(!darkMode)}
+              className="gap-2"
+            >
+              {darkMode ? (
+                <Sun className="w-4 h-4" />
+              ) : (
+                <Moon className="w-4 h-4" />
+              )}
+              <span className="hidden sm:inline">
+                {darkMode ? 'Light' : 'Dark'}
+              </span>
             </Button>
-          </a>
+
+            <a
+              href="https://github.com/cksachdev/minote"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button variant="outline" size="sm" className="gap-2">
+                <Github className="w-4 h-4" />
+                <span className="hidden sm:inline">Star on GitHub</span>
+              </Button>
+            </a>
+          </div>
         </div>
 
         {/* Mobile Navigation */}
@@ -125,9 +171,11 @@ function Footer() {
 }
 
 function App() {
+  const [darkMode] = useDarkMode();
+
   return (
     <Router>
-      <div className="min-h-screen dark">
+      <div className={cn("min-h-screen", darkMode && "dark")}>
         <Navigation />
         <main className="pt-16">
           <Routes>

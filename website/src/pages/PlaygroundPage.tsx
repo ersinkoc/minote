@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 // Import MINOTE functions (they should be available from the minote package)
-import { jsonToMinote, minoteToJson } from 'minote';
+import { toMinote, toJson } from 'minote';
 
 const examples = {
   'simple-object': {
@@ -33,6 +33,25 @@ const examples = {
       active: true,
     }, null, 2),
   },
+  'nested-test': {
+    name: 'Nested Test',
+    json: JSON.stringify({
+      user: {
+        id: 123,
+        profile: {
+          name: 'Alice',
+          settings: {
+            theme: 'dark',
+            notifications: true
+          }
+        },
+        stats: {
+          score: 100,
+          badges: ['gold', 'silver']
+        }
+      }
+    }, null, 2),
+  },
   'array-of-objects': {
     name: 'Array of Users',
     json: JSON.stringify({
@@ -41,6 +60,330 @@ const examples = {
         { id: 2, name: 'Bob', email: 'bob@example.com', role: 'user', active: true },
         { id: 3, name: 'Charlie', email: 'charlie@example.com', role: 'user', active: false },
       ],
+    }, null, 2),
+  },
+  'ecommerce-products': {
+    name: 'E-commerce Products',
+    json: JSON.stringify({
+      products: [
+        {
+          id: 'PRD001',
+          name: 'Wireless Bluetooth Headphones',
+          category: 'Electronics',
+          price: 89.99,
+          currency: 'USD',
+          inStock: true,
+          stock: 45,
+          images: ['headphones1.jpg', 'headphones2.jpg'],
+          specifications: {
+            color: 'Black',
+            weight: '250g',
+            battery: '30 hours',
+            connectivity: 'Bluetooth 5.0'
+          },
+          reviews: [
+            { rating: 5, comment: 'Excellent sound quality!' },
+            { rating: 4, comment: 'Good value for money' }
+          ]
+        },
+        {
+          id: 'PRD002',
+          name: 'Smart Watch Pro',
+          category: 'Wearables',
+          price: 299.99,
+          currency: 'USD',
+          inStock: true,
+          stock: 12,
+          images: ['watch1.jpg'],
+          specifications: {
+            display: '1.4" AMOLED',
+            battery: '7 days',
+            waterResistant: 'IP68',
+            features: ['Heart rate', 'GPS', 'Sleep tracking']
+          },
+          reviews: [
+            { rating: 5, comment: 'Love the battery life!' },
+            { rating: 3, comment: 'A bit expensive' }
+          ]
+        }
+      ]
+    }, null, 2),
+  },
+  'social-media-feed': {
+    name: 'Social Media Feed',
+    json: JSON.stringify({
+      feed: {
+        user: {
+          id: 'user123',
+          username: 'tech_enthusiast',
+          displayName: 'Tech Enthusiast',
+          avatar: 'avatar.jpg',
+          verified: true,
+          followers: 15420,
+          following: 892
+        },
+        posts: [
+          {
+            id: 'post001',
+            content: 'Just discovered an amazing AI tool that can reduce JSON size by 60%! 🤯',
+            timestamp: '2024-01-15T14:30:00Z',
+            likes: 342,
+            comments: 28,
+            shares: 56,
+            hashtags: ['#AI', '#JSON', 'DataOptimization'],
+            media: {
+              type: 'image',
+              url: 'post1.jpg',
+              alt: 'AI tool screenshot'
+            }
+          },
+          {
+            id: 'post002',
+            content: 'Working on a new project that uses MINOTE notation for efficient data storage. The results are impressive!',
+            timestamp: '2024-01-14T09:15:00Z',
+            likes: 189,
+            comments: 15,
+            shares: 23,
+            hashtags: ['#MINOTE', '#DataScience', 'Innovation'],
+            poll: {
+              question: 'Which data format do you prefer?',
+              options: ['JSON', 'MINOTE', 'XML', 'YAML'],
+              votes: [245, 189, 45, 67]
+            }
+          }
+        ]
+      }
+    }, null, 2),
+  },
+  'financial-data': {
+    name: 'Financial Portfolio',
+    json: JSON.stringify({
+      portfolio: {
+        clientId: 'CL789456',
+        clientName: 'Sarah Johnson',
+        advisor: 'Michael Chen',
+        totalValue: 1250000.50,
+        currency: 'USD',
+        lastUpdated: '2024-01-15T16:00:00Z',
+        assets: [
+          {
+            symbol: 'AAPL',
+            name: 'Apple Inc.',
+            type: 'stock',
+            quantity: 150,
+            avgPrice: 145.67,
+            currentPrice: 192.53,
+            value: 28879.50,
+            gain: 7029.00,
+            gainPercent: 32.17
+          },
+          {
+            symbol: 'GOOGL',
+            name: 'Alphabet Inc.',
+            type: 'stock',
+            quantity: 50,
+            avgPrice: 2450.00,
+            currentPrice: 2812.45,
+            value: 140622.50,
+            gain: 18122.50,
+            gainPercent: 14.79
+          },
+          {
+            symbol: 'BTC',
+            name: 'Bitcoin',
+            type: 'cryptocurrency',
+            quantity: 0.5,
+            avgPrice: 35000.00,
+            currentPrice: 42500.00,
+            value: 21250.00,
+            gain: 3750.00,
+            gainPercent: 21.43
+          }
+        ],
+        allocations: {
+          stocks: 65.5,
+          bonds: 20.0,
+          realEstate: 10.0,
+          cryptocurrencies: 4.5
+        },
+        performance: {
+          ytd: 12.4,
+          oneYear: 18.7,
+          threeYear: 45.2,
+          fiveYear: 89.3
+        }
+      }
+    }, null, 2),
+  },
+  'iot-sensors': {
+    name: 'IoT Sensor Network',
+    json: JSON.stringify({
+      network: {
+        id: 'NET001',
+        name: 'Smart Building Sensors',
+        location: 'Tech Hub Downtown',
+        timezone: 'America/New_York',
+        sensors: [
+          {
+            id: 'TEMP001',
+            type: 'temperature',
+            location: 'Floor 1 - Lobby',
+            status: 'active',
+            battery: 87,
+            lastSeen: '2024-01-15T16:05:00Z',
+            readings: [
+              { timestamp: '2024-01-15T16:00:00Z', value: 22.5, unit: 'Celsius' },
+              { timestamp: '2024-01-15T16:01:00Z', value: 22.7, unit: 'Celsius' },
+              { timestamp: '2024-01-15T16:02:00Z', value: 22.6, unit: 'Celsius' },
+              { timestamp: '2024-01-15T16:03:00Z', value: 22.8, unit: 'Celsius' },
+              { timestamp: '2024-01-15T16:04:00Z', value: 22.4, unit: 'Celsius' }
+            ],
+            thresholds: { min: 18.0, max: 26.0, critical: { min: 15.0, max: 30.0 } }
+          },
+          {
+            id: 'HUMID001',
+            type: 'humidity',
+            location: 'Floor 1 - Lobby',
+            status: 'active',
+            battery: 92,
+            lastSeen: '2024-01-15T16:05:00Z',
+            readings: [
+              { timestamp: '2024-01-15T16:00:00Z', value: 45.2, unit: '%' },
+              { timestamp: '2024-01-15T16:01:00Z', value: 45.5, unit: '%' },
+              { timestamp: '2024-01-15T16:02:00Z', value: 45.3, unit: '%' },
+              { timestamp: '2024-01-15T16:03:00Z', value: 45.7, unit: '%' },
+              { timestamp: '2024-01-15T16:04:00Z', value: 45.1, unit: '%' }
+            ],
+            thresholds: { min: 30.0, max: 60.0, critical: { min: 20.0, max: 70.0 } }
+          },
+          {
+            id: 'MOTION001',
+            type: 'motion',
+            location: 'Floor 2 - Conference Room A',
+            status: 'active',
+            battery: 78,
+            lastSeen: '2024-01-15T16:04:00Z',
+            readings: [
+              { timestamp: '2024-01-15T16:00:00Z', value: false, unit: 'binary' },
+              { timestamp: '2024-01-15T16:01:00Z', value: false, unit: 'binary' },
+              { timestamp: '2024-01-15T16:02:00Z', value: true, unit: 'binary' },
+              { timestamp: '2024-01-15T16:03:00Z', value: true, unit: 'binary' },
+              { timestamp: '2024-01-15T16:04:00Z', value: false, unit: 'binary' }
+            ]
+          }
+        ],
+        alerts: [
+          {
+            id: 'ALERT001',
+            sensorId: 'TEMP001',
+            type: 'threshold_warning',
+            message: 'Temperature approaching upper threshold',
+            severity: 'warning',
+            timestamp: '2024-01-15T15:45:00Z',
+            acknowledged: false
+          }
+        ]
+      }
+    }, null, 2),
+  },
+  'gaming-data': {
+    name: 'Gaming Leaderboard',
+    json: JSON.stringify({
+      game: {
+        id: 'GAME001',
+        name: 'Space Warriors',
+        version: '2.4.1',
+        maxPlayers: 100,
+        gameMode: 'battle_royale',
+        map: 'Cosmic Arena',
+        season: 5,
+        seasonEnd: '2024-03-01T00:00:00Z'
+      },
+      leaderboard: {
+        lastUpdated: '2024-01-15T16:00:00Z',
+        refreshInterval: 300,
+        players: [
+          {
+            rank: 1,
+            playerId: 'P1001',
+            username: 'ProGamer2024',
+            level: 87,
+            experience: 2456789,
+            kda: { kills: 3421, deaths: 892, assists: 2105 },
+            winRate: 68.4,
+            totalGames: 1847,
+            achievements: [
+              { id: 'ACH001', name: 'First Blood', unlocked: '2023-01-15T10:30:00Z' },
+              { id: 'ACH023', name: 'Sharpshooter', unlocked: '2023-06-22T14:20:00Z' },
+              { id: 'ACH045', name: 'Team Player', unlocked: '2023-09-10T18:45:00Z' }
+            ],
+            loadout: {
+              primary: 'Plasma Rifle',
+              secondary: 'Pistol',
+              special: 'Grenade Launcher',
+              melee: 'Energy Sword'
+            },
+            stats: {
+              accuracy: 72.3,
+              headshotPercent: 41.7,
+              avgSurvivalTime: 847,
+              longestKillStreak: 18
+            }
+          },
+          {
+            rank: 2,
+            playerId: 'P2045',
+            username: 'NinjaWarrior',
+            level: 85,
+            experience: 2345678,
+            kda: { kills: 3892, deaths: 1234, assists: 1876 },
+            winRate: 65.2,
+            totalGames: 2156,
+            achievements: [
+              { id: 'ACH001', name: 'First Blood', unlocked: '2023-02-20T09:15:00Z' },
+              { id: 'ACH028', name: 'Speed Demon', unlocked: '2023-07-18T16:30:00Z' }
+            ],
+            loadout: {
+              primary: 'Sniper Rifle',
+              secondary: 'SMG',
+              special: 'Smoke Grenade',
+              melee: 'Combat Knife'
+            },
+            stats: {
+              accuracy: 68.9,
+              headshotPercent: 38.2,
+              avgSurvivalTime: 765,
+              longestKillStreak: 22
+            }
+          },
+          {
+            rank: 3,
+            playerId: 'P3333',
+            username: 'CyberKnight',
+            level: 83,
+            experience: 2234567,
+            kda: { kills: 3123, deaths: 987, assists: 2341 },
+            winRate: 64.8,
+            totalGames: 1987,
+            achievements: [
+              { id: 'ACH012', name: 'Tank Destroyer', unlocked: '2023-04-05T13:20:00Z' },
+              { id: 'ACH033', name: 'Medic', unlocked: '2023-08-12T11:45:00Z' }
+            ],
+            loadout: {
+              primary: 'Heavy Machine Gun',
+              secondary: 'Shotgun',
+              special: 'Health Pack',
+              melee: 'War Hammer'
+            },
+            stats: {
+              accuracy: 75.1,
+              headshotPercent: 35.6,
+              avgSurvivalTime: 912,
+              longestKillStreak: 15
+            }
+          }
+        ]
+      }
     }, null, 2),
   },
   'nested-structure': {
@@ -78,7 +421,7 @@ const examples = {
 
 export default function PlaygroundPage() {
   const [direction, setDirection] = useState<'json-to-minote' | 'minote-to-json'>('json-to-minote');
-  const [leftContent, setLeftContent] = useState(examples['array-of-objects'].json);
+  const [leftContent, setLeftContent] = useState(examples['simple-object'].json);
   const [rightContent, setRightContent] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -101,12 +444,11 @@ export default function PlaygroundPage() {
       setError(null);
       if (direction === 'json-to-minote') {
         const parsed = JSON.parse(leftContent);
-        const minote = jsonToMinote(parsed);
+        const minote = toMinote(parsed);
         setRightContent(minote);
       } else {
-        const json = minoteToJson(leftContent);
-        const formatted = JSON.stringify(json, null, 2);
-        setRightContent(formatted);
+        const json = toJson(leftContent, true);
+        setRightContent(json);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Conversion failed');
@@ -156,7 +498,7 @@ export default function PlaygroundPage() {
   };
 
   const handleReset = () => {
-    setLeftContent(examples['array-of-objects'].json);
+    setLeftContent(examples['simple-object'].json);
     setRightContent('');
     setError(null);
   };
