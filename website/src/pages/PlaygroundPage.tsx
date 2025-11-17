@@ -20,8 +20,8 @@ import {
   AlertCircle,
 } from 'lucide-react';
 
-// Import MINOTE functions (they should be available from the minote package)
-import { jsonToMinote, minoteToJson } from 'minote';
+// Import MINOTE functions
+import { toMinote, toJson } from 'minote';
 
 const examples = {
   'simple-object': {
@@ -101,10 +101,10 @@ export default function PlaygroundPage() {
       setError(null);
       if (direction === 'json-to-minote') {
         const parsed = JSON.parse(leftContent);
-        const minote = jsonToMinote(parsed);
+        const minote = toMinote(parsed);
         setRightContent(minote);
       } else {
-        const json = minoteToJson(leftContent);
+        const json = toJson(leftContent);
         const formatted = JSON.stringify(json, null, 2);
         setRightContent(formatted);
       }
