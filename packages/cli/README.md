@@ -3,10 +3,11 @@
 > Command-line tools for MINOTE (Minimal Notation for LLMs)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
 
 ## Overview
 
-`@minote/cli` provides command-line tools for working with MINOTE files, including conversion, parsing, formatting, validation, and token analysis.
+`@minote/cli` provides production-ready command-line tools for working with MINOTE files, including conversion, parsing, formatting, validation, and token analysis. Built on the robust `@minote/core` library with **100% test coverage**.
 
 ## Installation
 

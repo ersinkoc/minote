@@ -182,5 +182,34 @@ user
         expect(e).toBeDefined()
       }
     })
+
+    it('should throw on unexpected token type', () => {
+      // Test the expect method error case (lines 586-591)
+      const input = 'name' // Missing colon after key - invalid syntax
+
+      expect(() => parser.parse(input)).toThrow()
+    })
+
+    it('should handle schema parsing error cases', () => {
+      // Test that parsing invalid schema syntax throws appropriate errors
+      const input = '#invalid schema syntax'
+
+      expect(() => parser.parse(input)).toThrow()
+    })
+
+    it('should handle empty schema definitions with break condition', () => {
+      // Test line 502 - break condition in schema parsing
+      const input = '#User[]\n' // Empty schema definition
+
+      // Empty schema definitions are not valid syntax and should throw
+      expect(() => parser.parse(input)).toThrow("Expected ':' after property key")
+    })
+
+    it('should handle expect method with detailed error messages', () => {
+      // Test lines 587-588 - expect method error throwing
+      const input = 'name' // Missing colon after identifier
+
+      expect(() => parser.parse(input)).toThrow(/Expected ':' after property key/)
+    })
   })
 })

@@ -17,7 +17,8 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "test": "echo 'CLI package has no tests - all tests are in packages/core'"
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "chalk": "^4.1.2",
@@ -27,6 +28,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
+    "@vitest/coverage-v8": "^4.0.9",
     "tsup": "^8.0.1",
     "typescript": "^5.3.3",
     "vitest": "^4.0.9"
