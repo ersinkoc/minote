@@ -112,8 +112,32 @@ export class MinoteParser {
 
     const key = this.advance().value
 
-    // Check for colon
-    if (!this.check(TokenType.COLON)) {
+    // Check for colon OR block value on next line (colon-less syntax)
+    const hasColon = this.check(TokenType.COLON)
+
+    // Special case: block value without colon (e.g., "users\n  #User[...]" or "user\n  name: Alice")
+    if (!hasColon) {
+      // Check if next is newline + indent (block value)
+      if (this.check(TokenType.NEWLINE)) {
+        const savedPos = this.current
+        this.skipNewlines()
+
+        if (this.check(TokenType.INDENT)) {
+          this.advance() // consume INDENT
+          // Parse the block value (could be table, object, etc.)
+          const value = this.parseAnyValue()
+          this.expect(TokenType.DEDENT)
+          return {
+            type: 'Property',
+            key,
+            value,
+          }
+        } else {
+          this.current = savedPos
+        }
+      }
+
+      // If we get here, we need a colon (inline value without colon is invalid)
       throw new ParseError(
         `Expected ':' after property key '${key}'`,
         this.peek().position

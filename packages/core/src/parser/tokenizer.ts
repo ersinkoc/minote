@@ -87,10 +87,20 @@ export class Tokenizer {
       return
     }
 
-    // Comments (# at start of line or after whitespace, but not schema #Name)
-    if (char === '#' && this.peek() !== '[' && /\s/.test(this.peekBehind())) {
-      this.skipComment()
-      return
+    // Comments (# at start of line or after whitespace, but not schema #Name[...])
+    // Schema pattern: #Identifier[...] where Identifier starts with letter
+    if (char === '#') {
+      const nextChar = this.peek()
+      const prevChar = this.peekBehind()
+
+      // If # is followed by a letter (schema name), it's a schema, not a comment
+      const isSchema = nextChar && /[a-zA-Z_]/.test(nextChar)
+
+      // Comments: # not followed by letter/identifier AND preceded by whitespace
+      if (!isSchema && /\s/.test(prevChar)) {
+        this.skipComment()
+        return
+      }
     }
 
     // Single character tokens

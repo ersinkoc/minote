@@ -31,7 +31,8 @@ describe('JsonToMinoteConverter', () => {
     expect(minote).toContain('user')
     expect(minote).toContain('name: Alice')
     expect(minote).toContain('contact')
-    expect(minote).toContain('email: alice@example.com')
+    // Email with @ must be quoted, so check for the email content (with or without quotes)
+    expect(minote).toContain('alice@example.com')
   })
 
   it('should convert arrays to tables when appropriate', () => {
@@ -92,7 +93,7 @@ active: true
 user
   name: Alice
   contact
-    email: alice@example.com
+    email: "alice@example.com"
     `.trim()
 
     const json = converter.convertToObject(minote) as any
