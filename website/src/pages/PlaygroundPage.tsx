@@ -20,7 +20,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 
-// Import MINOTE functions (they should be available from the minote package)
+// Import MINOTE functions
 import { toMinote, toJson } from 'minote';
 
 const examples = {
@@ -519,7 +519,7 @@ export default function PlaygroundPage() {
             </div>
 
             <div className="flex items-center gap-2">
-              <Select onValueChange={loadExample} defaultValue="array-of-objects">
+              <Select onValueChange={loadExample} defaultValue="simple-object">
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="Load example" />
                 </SelectTrigger>
