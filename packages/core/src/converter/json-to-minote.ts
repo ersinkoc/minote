@@ -148,7 +148,7 @@ export class JsonToMinoteConverter {
 
     const rows: MinoteTableRow[] = arr.map(obj => ({
       type: 'TableRow',
-      cells: fields.map(field => obj[field.name] as MinoteValue),
+      cells: fields.map(field => this.convertValue(obj[field.name])),
     }))
 
     return {

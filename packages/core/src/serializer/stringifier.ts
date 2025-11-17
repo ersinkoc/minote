@@ -166,7 +166,48 @@ export class MinoteStringifier {
       return ''
     }
 
+    // Handle objects, arrays, and tables by converting to JSON
+    // This provides a compact representation suitable for table cells
+    if (isMinoteObject(value) || isMinoteArray(value) || isMinoteTable(value)) {
+      const jsValue = this.minoteToJs(value)
+      return JSON.stringify(jsValue)
+    }
+
     return String(value)
+  }
+
+  /**
+   * Convert MinoteValue to JavaScript value for JSON serialization
+   */
+  private minoteToJs(value: MinoteValue): unknown {
+    if (value === null || typeof value !== 'object') {
+      return value
+    }
+
+    if (isMinoteObject(value)) {
+      const result: Record<string, unknown> = {}
+      for (const prop of value.properties) {
+        result[prop.key] = this.minoteToJs(prop.value)
+      }
+      return result
+    }
+
+    if (isMinoteArray(value)) {
+      return value.elements.map(el => this.minoteToJs(el))
+    }
+
+    if (isMinoteTable(value)) {
+      return value.rows.map(row => {
+        const obj: Record<string, unknown> = {}
+        row.cells.forEach((cell, i) => {
+          const field = value.schema.fields[i]
+          obj[field.name] = this.minoteToJs(cell)
+        })
+        return obj
+      })
+    }
+
+    return value
   }
 
   private shouldInline(value: MinoteValue): boolean {
